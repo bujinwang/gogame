@@ -6,6 +6,11 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "test": "mocha test/**/*.test.js --timeout 10000",
+    "test:engine": "mocha test/game-engine.test.js --timeout 10000",
+    "test:timer": "mocha test/timer.test.js --timeout 10000",
+    "test:protocol": "mocha test/protocol.test.js --timeout 10000",
+    "test:ai": "mocha test/ai-player.test.js --timeout 10000",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
@@ -15,7 +20,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron-builder": "^24.9.1",
+    "mocha": "^10.2.0"
   },
   "dependencies": {
     "ws": "^8.16.0"

@@ -10,6 +10,256 @@ const STONE = { EMPTY: 0, BLACK: 1, WHITE: 2, RED: 3 };
 const BOARD_SIZE = 19;
 
 // ============================================================
+// Audio Service (inline for renderer context)
+// ============================================================
+const audioService = {
+  audioContext: null,
+  enabled: true,
+  volume: 0.5,
+  initialized: false,
+
+  init() {
+    if (this.initialized) return;
+    try {
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.initialized = true;
+    } catch (error) {
+      console.warn('Web Audio API not supported:', error);
+      this.enabled = false;
+    }
+  },
+
+  async resume() {
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+  },
+
+  playStonePlace() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    
+    const osc = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+    gainNode.gain.setValueAtTime(this.volume * 0.3, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+
+    const noise = this.audioContext.createOscillator();
+    const noiseGain = this.audioContext.createGain();
+    noise.type = 'triangle';
+    noise.frequency.setValueAtTime(150, now);
+    noise.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+    noiseGain.gain.setValueAtTime(this.volume * 0.2, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    noise.connect(noiseGain);
+    noiseGain.connect(this.audioContext.destination);
+    noise.start(now);
+    noise.stop(now + 0.1);
+  },
+
+  playCapture(count = 1) {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    const intensity = Math.min(count, 10) / 10;
+
+    for (let i = 0; i < Math.min(count, 5); i++) {
+      const delay = i * 0.03;
+      const osc = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400 + Math.random() * 200, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(100, now + delay + 0.1);
+      gainNode.gain.setValueAtTime(this.volume * 0.15 * (1 + intensity), now + delay);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+      osc.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.12);
+    }
+
+    const rumble = this.audioContext.createOscillator();
+    const rumbleGain = this.audioContext.createGain();
+    rumble.type = 'sine';
+    rumble.frequency.setValueAtTime(80, now);
+    rumble.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+    rumbleGain.gain.setValueAtTime(this.volume * 0.1 * (1 + intensity), now);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    rumble.connect(rumbleGain);
+    rumbleGain.connect(this.audioContext.destination);
+    rumble.start(now);
+    rumble.stop(now + 0.25);
+  },
+
+  playCollision() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+
+    const osc1 = this.audioContext.createOscillator();
+    const gain1 = this.audioContext.createGain();
+    osc1.type = 'square';
+    osc1.frequency.setValueAtTime(600, now);
+    osc1.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+    gain1.gain.setValueAtTime(this.volume * 0.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc1.connect(gain1);
+    gain1.connect(this.audioContext.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.2);
+
+    const osc2 = this.audioContext.createOscillator();
+    const gain2 = this.audioContext.createGain();
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(800, now + 0.02);
+    osc2.frequency.exponentialRampToValueAtTime(150, now + 0.18);
+    gain2.gain.setValueAtTime(this.volume * 0.15, now + 0.02);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc2.connect(gain2);
+    gain2.connect(this.audioContext.destination);
+    osc2.start(now + 0.02);
+    osc2.stop(now + 0.22);
+  },
+
+  playTurnNotification() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    const notes = [523.25, 659.25];
+    
+    notes.forEach((freq, i) => {
+      const osc = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.1);
+      gainNode.gain.setValueAtTime(this.volume * 0.2, now + i * 0.1);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+      osc.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      osc.start(now + i * 0.1);
+      osc.stop(now + i * 0.1 + 0.3);
+    });
+  },
+
+  playTimerWarning() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    const osc = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    gainNode.gain.setValueAtTime(this.volume * 0.25, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    osc.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  },
+
+  playTimerCritical() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+
+    for (let i = 0; i < 2; i++) {
+      const osc = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1000, now + i * 0.08);
+      gainNode.gain.setValueAtTime(this.volume * 0.3, now + i * 0.08);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.05);
+      osc.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + i * 0.08 + 0.05);
+    }
+  },
+
+  playGameOver(isWin) {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+
+    if (isWin) {
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.15);
+        gainNode.gain.setValueAtTime(this.volume * 0.25, now + i * 0.15);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
+        osc.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.4);
+      });
+    } else {
+      const notes = [392.00, 329.63, 261.63];
+      notes.forEach((freq, i) => {
+        const osc = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.2);
+        gainNode.gain.setValueAtTime(this.volume * 0.2, now + i * 0.2);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.35);
+        osc.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        osc.start(now + i * 0.2);
+        osc.stop(now + i * 0.2 + 0.35);
+      });
+    }
+  },
+
+  playPass() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    const osc = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.2);
+    gainNode.gain.setValueAtTime(this.volume * 0.15, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  },
+
+  playError() {
+    if (!this.enabled || !this.audioContext) return;
+    this.resume();
+    const now = this.audioContext.currentTime;
+    const osc = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    gainNode.gain.setValueAtTime(this.volume * 0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  },
+
+  setEnabled(enabled) { this.enabled = enabled; },
+  setVolume(volume) { this.volume = Math.max(0, Math.min(1, volume)); },
+  isEnabled() { return this.enabled; },
+  getVolume() { return this.volume; }
+};
+
+// ============================================================
 // State
 // ============================================================
 const state = {
@@ -27,7 +277,8 @@ const state = {
   hoverPos: null,       // {x, y} for hover preview
   lastBlackMove: null,
   lastWhiteMove: null,
-  moveHistory: []
+  moveHistory: [],
+  lastByoYomiWarning: 0  // Track last warning to prevent spam
 };
 
 // ============================================================
@@ -425,6 +676,9 @@ function handleGameStart(msg) {
   
   showScreen('game');
   
+  // Initialize audio (requires user interaction first)
+  audioService.init();
+  
   // Initialize board renderer
   if (!boardRenderer) {
     const canvas = document.getElementById('game-board');
@@ -435,6 +689,9 @@ function handleGameStart(msg) {
   // Enable controls
   document.getElementById('btn-pass').disabled = false;
   document.getElementById('btn-resign').disabled = false;
+  
+  // Play game start sound
+  audioService.playTurnNotification();
   
   updateStatus('游戏开始！请落子...');
 }
@@ -467,6 +724,9 @@ function handleMoveAck(msg) {
 }
 
 function handleTurnResult(msg) {
+  const prevCapturedBlack = state.capturedByBlack;
+  const prevCapturedWhite = state.capturedByWhite;
+  
   // Update board
   state.board = msg.board;
   state.capturedByBlack = msg.capturedByBlack || 0;
@@ -489,9 +749,31 @@ function handleTurnResult(msg) {
   // Redraw board
   if (boardRenderer) boardRenderer.draw();
   
-  // Flash collision notification
+  // Play sounds based on what happened
   if (msg.collision) {
+    // Collision - red stone appeared
+    audioService.playCollision();
     updateStatus(`⚠️ 碰撞！红棋出现在 ${formatPos(msg.collisionPos)}`);
+  } else {
+    // Check for captures
+    const newBlackCaptures = state.capturedByBlack - prevCapturedBlack;
+    const newWhiteCaptures = state.capturedByWhite - prevCapturedWhite;
+    const totalCaptures = newBlackCaptures + newWhiteCaptures;
+    
+    if (totalCaptures > 0) {
+      audioService.playCapture(totalCaptures);
+    } else {
+      // Normal stone placement
+      audioService.playStonePlace();
+    }
+    
+    // Check for passes
+    if (msg.blackMove && msg.blackMove.pass) {
+      audioService.playPass();
+    }
+    if (msg.whiteMove && msg.whiteMove.pass) {
+      audioService.playPass();
+    }
   }
 }
 
@@ -508,6 +790,10 @@ function handleGameEnd(msg) {
   
   const canvas = document.getElementById('game-board');
   canvas.classList.add('disabled');
+  
+  // Play game over sound
+  const isWin = (state.myColor === msg.winner);
+  audioService.playGameOver(isWin);
   
   // Show result screen
   showResultScreen(msg);
@@ -527,6 +813,7 @@ async function submitMove(x, y) {
     state.moveSubmitted = false;
     document.getElementById('btn-pass').disabled = false;
     console.error('Move rejected:', result.error);
+    audioService.playError();
     updateStatus(`落子失败: ${result.error}`);
   }
 }
@@ -591,6 +878,10 @@ function updateTimerDisplay(timers) {
   
   const bt = timers.blackTimer;
   const wt = timers.whiteTimer;
+  const now = Date.now();
+  
+  // Get my timer based on color
+  const myTimer = state.myColor === 'black' ? bt : wt;
   
   if (bt) {
     const blackTimeEl = document.getElementById('black-time-main');
@@ -651,6 +942,27 @@ function updateTimerDisplay(timers) {
     
     if (wt.timedOut) {
       document.getElementById('white-player-card').classList.add('timed-out');
+    }
+  }
+  
+  // Play timer warning sounds for my timer (only when in byo-yomi)
+  if (myTimer && myTimer.inByoYomi && !state.moveSubmitted) {
+    const remaining = myTimer.currentByoYomiRemaining;
+    // Play critical warning every second in last 5 seconds
+    if (remaining <= 5000 && now - state.lastByoYomiWarning >= 900) {
+      audioService.playTimerCritical();
+      state.lastByoYomiWarning = now;
+    }
+    // Play regular warning at 10, 15, 20, 25 seconds
+    else if ((remaining <= 10000 && remaining > 5000) ||
+             (remaining <= 15000 && remaining > 10000) ||
+             (remaining <= 20000 && remaining > 15000) ||
+             (remaining <= 25000 && remaining > 20000)) {
+      const secondMark = Math.ceil(remaining / 5000) * 5000;
+      if (remaining <= secondMark && remaining > secondMark - 1000 && now - state.lastByoYomiWarning >= 4500) {
+        audioService.playTimerWarning();
+        state.lastByoYomiWarning = now;
+      }
     }
   }
 }
