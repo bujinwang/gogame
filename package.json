@@ -1,0 +1,39 @@
+{
+  "name": "simultaneous-go",
+  "version": "1.0.0",
+  "description": "Simultaneous Go (围棋) - A Go variant with simultaneous moves",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "build": {
+    "appId": "com.gogame.simultaneous-go",
+    "productName": "Simultaneous Go",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.board-games"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
