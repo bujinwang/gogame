@@ -13,7 +13,8 @@ const STONE = {
 // Game modes
 const GAME_MODE = {
   HUMAN_VS_HUMAN: 'human_vs_human',
-  HUMAN_VS_AI: 'human_vs_ai'
+  HUMAN_VS_AI: 'human_vs_ai',
+  HUMAN_VS_HUMAN_P2P: 'human_vs_human_p2p'
 };
 
 // AI difficulty levels

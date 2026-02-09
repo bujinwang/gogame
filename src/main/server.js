@@ -193,6 +193,7 @@ class GameServer {
     // Broadcast game start
     this._broadcast(createMessage(MSG.GAME_START, {
       boardSize: this.engine.board.size,
+      board: this.engine.board.grid, // Include initial board state
       timeSettings: {
         baseTime: this.gameSettings.baseTime,
         byoYomiPeriods: 3,

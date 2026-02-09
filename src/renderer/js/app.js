@@ -3,6 +3,12 @@
  * Handles UI, board rendering, and game client communication
  */
 
+// Fix for potential "dragEvent is not defined" error
+// This can occur due to browser extensions or other external scripts
+if (typeof dragEvent === 'undefined' && typeof window !== 'undefined') {
+  window.dragEvent = null;
+}
+
 // ============================================================
 // Constants (duplicated from shared for renderer context)
 // ============================================================
@@ -335,6 +341,10 @@ class BoardRenderer {
 
   _setupEvents() {
     this.canvas.addEventListener('mousemove', (e) => {
+      // Fix for potential dragEvent reference error
+      if (typeof dragEvent === 'undefined' && e.dataTransfer) {
+        window.dragEvent = e;
+      }
       const pos = this._getIntersection(e);
       if (pos && state.gameActive && !state.moveSubmitted) {
         state.hoverPos = pos;
@@ -351,6 +361,11 @@ class BoardRenderer {
 
     this.canvas.addEventListener('click', (e) => {
       if (!state.gameActive || state.moveSubmitted) return;
+      
+      // Fix for potential dragEvent reference error
+      if (typeof dragEvent === 'undefined' && e.dataTransfer) {
+        window.dragEvent = e;
+      }
       
       const pos = this._getIntersection(e);
       if (pos && state.board && state.board[pos.y][pos.x] === STONE.EMPTY) {
@@ -1049,11 +1064,19 @@ function setupEventListeners() {
   document.getElementById('btn-host').addEventListener('click', () => showScreen('host'));
   document.getElementById('btn-join').addEventListener('click', () => showScreen('join'));
   document.getElementById('btn-ai').addEventListener('click', () => showScreen('ai'));
+  document.getElementById('btn-webrtc').addEventListener('click', () => showScreen('webrtc'));
+  
+  // WebRTC screen buttons
+  document.getElementById('btn-webrtc-host').addEventListener('click', () => showScreen('webrtc-host'));
+  document.getElementById('btn-webrtc-join').addEventListener('click', () => showScreen('webrtc-join'));
   
   // Back buttons
   document.getElementById('btn-host-back').addEventListener('click', () => showScreen('home'));
   document.getElementById('btn-join-back').addEventListener('click', () => showScreen('home'));
   document.getElementById('btn-ai-back').addEventListener('click', () => showScreen('home'));
+  document.getElementById('btn-webrtc-back').addEventListener('click', () => showScreen('home'));
+  document.getElementById('btn-webrtc-host-back').addEventListener('click', () => showScreen('webrtc'));
+  document.getElementById('btn-webrtc-join-back').addEventListener('click', () => showScreen('webrtc'));
   
   // Host game
   document.getElementById('btn-host-start').addEventListener('click', async () => {
@@ -1075,6 +1098,35 @@ function setupEventListeners() {
     if (result.success) {
       document.getElementById('host-waiting').style.display = 'block';
       document.getElementById('host-ip-info').textContent = 
+        `地址: ${result.address}:${result.port}`;
+      btn.textContent = '等待中...';
+    } else {
+      btn.disabled = false;
+      btn.textContent = '开始等待';
+      alert('启动失败: ' + result.error);
+    }
+  });
+  
+  // Host WebRTC game
+  document.getElementById('btn-webrtc-host-start').addEventListener('click', async () => {
+    const name = document.getElementById('webrtc-host-name').value || '黑方';
+    const baseTime = parseInt(document.getElementById('webrtc-host-time').value);
+    const port = parseInt(document.getElementById('webrtc-host-port').value) || 38765;
+    
+    const btn = document.getElementById('btn-webrtc-host-start');
+    btn.disabled = true;
+    btn.textContent = '启动中...';
+    
+    const result = await window.gameAPI.hostWebRTCGame({
+      playerName: name,
+      baseTime: baseTime,
+      port: port,
+      mode: 'human_vs_human_p2p'
+    });
+    
+    if (result.success) {
+      document.getElementById('webrtc-host-waiting').style.display = 'block';
+      document.getElementById('webrtc-host-ip-info').textContent = 
         `地址: ${result.address}:${result.port}`;
       btn.textContent = '等待中...';
     } else {
@@ -1111,6 +1163,36 @@ function setupEventListeners() {
       btn.disabled = false;
       btn.textContent = '连接';
       showJoinStatus('连接失败: ' + result.error, 'error');
+    }
+  });
+  
+  // Join WebRTC game
+  document.getElementById('btn-webrtc-join-connect').addEventListener('click', async () => {
+    const name = document.getElementById('webrtc-join-name').value || '白方';
+    const host = document.getElementById('webrtc-join-host').value;
+    const port = parseInt(document.getElementById('webrtc-join-port').value) || 38765;
+    
+    if (!host) {
+      showWebRTCJoinStatus('请输入主机地址', 'error');
+      return;
+    }
+    
+    const btn = document.getElementById('btn-webrtc-join-connect');
+    btn.disabled = true;
+    btn.textContent = '连接中...';
+    
+    const result = await window.gameAPI.joinWebRTCGame({
+      playerName: name,
+      host: host,
+      port: port
+    });
+    
+    if (result.success) {
+      showWebRTCJoinStatus('连接成功！等待游戏开始...', 'success');
+    } else {
+      btn.disabled = false;
+      btn.textContent = '连接';
+      showWebRTCJoinStatus('连接失败: ' + result.error, 'error');
     }
   });
   
@@ -1169,6 +1251,13 @@ function showJoinStatus(text, type) {
   el.textContent = text;
 }
 
+function showWebRTCJoinStatus(text, type) {
+  const el = document.getElementById('webrtc-join-status');
+  el.style.display = 'block';
+  el.className = `status-info ${type}`;
+  el.textContent = text;
+}
+
 function resetGameState() {
   state.myColor = null;
   state.gameActive = false;
@@ -1193,6 +1282,12 @@ function resetGameState() {
   document.getElementById('btn-join-connect').disabled = false;
   document.getElementById('btn-join-connect').textContent = '连接';
   document.getElementById('join-status').style.display = 'none';
+  document.getElementById('webrtc-host-waiting').style.display = 'none';
+  document.getElementById('btn-webrtc-host-start').disabled = false;
+  document.getElementById('btn-webrtc-host-start').textContent = '开始等待';
+  document.getElementById('btn-webrtc-join-connect').disabled = false;
+  document.getElementById('btn-webrtc-join-connect').textContent = '连接';
+  document.getElementById('webrtc-join-status').style.display = 'none';
   document.getElementById('move-history').innerHTML = '';
   document.getElementById('black-captures').textContent = '提子: 0';
   document.getElementById('white-captures').textContent = '提子: 0';
@@ -1203,6 +1298,17 @@ function resetGameState() {
   document.getElementById('black-player-card').classList.remove('timed-out', 'active');
   document.getElementById('white-player-card').classList.remove('timed-out', 'active');
 }
+
+// ============================================================
+// Global error handler for dragEvent reference error
+// ============================================================
+window.addEventListener('error', (event) => {
+  if (event.error && event.error.message && event.error.message.includes('dragEvent is not defined')) {
+    console.warn('Caught dragEvent reference error:', event.error);
+    // Prevent this error from breaking the application
+    event.preventDefault();
+  }
+});
 
 // ============================================================
 // Initialize

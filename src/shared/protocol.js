@@ -29,7 +29,13 @@ const MSG = {
   
   // Reconnection
   RECONNECT: 'reconnect',
-  SYNC_STATE: 'sync_state'
+  SYNC_STATE: 'sync_state',
+  
+  // WebRTC Signaling
+  WEBRTC_OFFER: 'webrtc_offer',
+  WEBRTC_ANSWER: 'webrtc_answer',
+  WEBRTC_ICE_CANDIDATE: 'webrtc_ice_candidate',
+  WEBRTC_CONNECTED: 'webrtc_connected'
 };
 
 /**

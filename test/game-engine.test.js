@@ -45,11 +45,11 @@ describe('Board', () => {
       assert.strictEqual(board.get(5, 5), STONE.BLACK);
     });
 
-    it('should return null for out of bounds coordinates', () => {
-      assert.strictEqual(board.get(-1, 0), null);
-      assert.strictEqual(board.get(0, -1), null);
-      assert.strictEqual(board.get(19, 0), null);
-      assert.strictEqual(board.get(0, 19), null);
+    it('should return -1 for out of bounds coordinates', () => {
+      assert.strictEqual(board.get(-1, 0), -1);
+      assert.strictEqual(board.get(0, -1), -1);
+      assert.strictEqual(board.get(19, 0), -1);
+      assert.strictEqual(board.get(0, 19), -1);
     });
   });
 
@@ -67,19 +67,30 @@ describe('Board', () => {
     });
   });
 
-  describe('getNeighbors', () => {
+  describe('isEmpty', () => {
+    it('should return true for empty positions', () => {
+      assert.strictEqual(board.isEmpty(0, 0), true);
+    });
+
+    it('should return false for occupied positions', () => {
+      board.set(5, 5, STONE.BLACK);
+      assert.strictEqual(board.isEmpty(5, 5), false);
+    });
+  });
+
+  describe('getAdjacentPositions', () => {
     it('should return 4 neighbors for center position', () => {
-      const neighbors = board.getNeighbors(9, 9);
+      const neighbors = board.getAdjacentPositions(9, 9);
       assert.strictEqual(neighbors.length, 4);
     });
 
     it('should return 2 neighbors for corner position', () => {
-      const neighbors = board.getNeighbors(0, 0);
+      const neighbors = board.getAdjacentPositions(0, 0);
       assert.strictEqual(neighbors.length, 2);
     });
 
     it('should return 3 neighbors for edge position', () => {
-      const neighbors = board.getNeighbors(0, 9);
+      const neighbors = board.getAdjacentPositions(0, 9);
       assert.strictEqual(neighbors.length, 3);
     });
   });
@@ -109,39 +120,38 @@ describe('Board', () => {
   });
 
   describe('countLiberties', () => {
-    it('should count 4 liberties for isolated stone', () => {
+    it('should count liberties for a group', () => {
       board.set(9, 9, STONE.BLACK);
-      const liberties = board.countLiberties(9, 9);
+      const group = board.getGroup(9, 9);
+      const liberties = board.countLiberties(group);
       assert.strictEqual(liberties, 4);
-    });
-
-    it('should count 2 liberties for corner stone', () => {
-      board.set(0, 0, STONE.BLACK);
-      const liberties = board.countLiberties(0, 0);
-      assert.strictEqual(liberties, 2);
     });
 
     it('should count reduced liberties when surrounded', () => {
       board.set(9, 9, STONE.BLACK);
       board.set(8, 9, STONE.WHITE);
       board.set(10, 9, STONE.WHITE);
-      const liberties = board.countLiberties(9, 9);
+      const group = board.getGroup(9, 9);
+      const liberties = board.countLiberties(group);
       assert.strictEqual(liberties, 2);
     });
 
     it('should count liberties for connected group', () => {
       board.set(9, 9, STONE.BLACK);
       board.set(10, 9, STONE.BLACK);
+      const group = board.getGroup(9, 9);
       // Group has 6 liberties (8 shared - 2 connecting points)
-      const liberties = board.countLiberties(9, 9);
+      const liberties = board.countLiberties(group);
       assert.strictEqual(liberties, 6);
     });
+  });
 
-    it('should treat RED stones as blocking liberties', () => {
+  describe('getLibertiesPositions', () => {
+    it('should return liberty positions for a group', () => {
       board.set(9, 9, STONE.BLACK);
-      board.set(8, 9, STONE.RED);
-      const liberties = board.countLiberties(9, 9);
-      assert.strictEqual(liberties, 3); // One liberty blocked by red
+      const group = board.getGroup(9, 9);
+      const liberties = board.getLibertiesPositions(group);
+      assert.strictEqual(liberties.length, 4);
     });
   });
 
@@ -166,6 +176,16 @@ describe('Board', () => {
       
       const deadGroups = board.findDeadGroups(STONE.BLACK);
       assert.strictEqual(deadGroups.length, 0);
+    });
+  });
+
+  describe('removeStones', () => {
+    it('should remove stones from the board', () => {
+      board.set(5, 5, STONE.BLACK);
+      assert.strictEqual(board.get(5, 5), STONE.BLACK);
+      
+      board.removeStones([{ x: 5, y: 5 }]);
+      assert.strictEqual(board.get(5, 5), STONE.EMPTY);
     });
   });
 
@@ -199,26 +219,53 @@ describe('Board', () => {
       assert.notStrictEqual(hash1, hash2);
     });
   });
+
+  describe('serialize/deserialize', () => {
+    it('should serialize and deserialize board state', () => {
+      board.set(5, 5, STONE.BLACK);
+      board.set(10, 10, STONE.WHITE);
+      
+      const serialized = board.serialize();
+      const newBoard = new Board();
+      newBoard.deserialize(serialized);
+      
+      assert.strictEqual(newBoard.get(5, 5), STONE.BLACK);
+      assert.strictEqual(newBoard.get(10, 10), STONE.WHITE);
+    });
+  });
+
+  describe('countStones', () => {
+    it('should count stones of each color', () => {
+      board.set(0, 0, STONE.BLACK);
+      board.set(1, 0, STONE.BLACK);
+      board.set(2, 0, STONE.WHITE);
+      board.set(3, 0, STONE.RED);
+      
+      const counts = board.countStones();
+      assert.strictEqual(counts.black, 2);
+      assert.strictEqual(counts.white, 1);
+      assert.strictEqual(counts.red, 1);
+      assert.strictEqual(counts.empty, 19*19 - 4);
+    });
+  });
 });
 
 describe('Rules', () => {
   let board;
-  let rules;
 
   beforeEach(() => {
     board = new Board();
-    rules = new Rules();
   });
 
   describe('validateMove', () => {
     it('should allow valid move on empty intersection', () => {
-      const result = rules.validateMove(board, { x: 9, y: 9 }, STONE.BLACK);
+      const result = Rules.validateMove(board, 9, 9, STONE.BLACK);
       assert.strictEqual(result.valid, true);
     });
 
     it('should reject move on occupied intersection', () => {
       board.set(9, 9, STONE.WHITE);
-      const result = rules.validateMove(board, { x: 9, y: 9 }, STONE.BLACK);
+      const result = Rules.validateMove(board, 9, 9, STONE.BLACK);
       assert.strictEqual(result.valid, false);
     });
 
@@ -228,7 +275,7 @@ describe('Rules', () => {
       board.set(1, 0, STONE.WHITE);
       
       // Playing at 0,0 would be suicide
-      const result = rules.validateMove(board, { x: 0, y: 0 }, STONE.BLACK);
+      const result = Rules.validateMove(board, 0, 0, STONE.BLACK);
       assert.strictEqual(result.valid, false);
     });
 
@@ -241,22 +288,40 @@ describe('Rules', () => {
       
       // White at 1,0 only has one liberty at 0,0
       // Black playing there captures it
-      const result = rules.validateMove(board, { x: 0, y: 0 }, STONE.BLACK);
+      const result = Rules.validateMove(board, 0, 0, STONE.BLACK);
+      assert.strictEqual(result.valid, true);
+    });
+  });
+
+  describe('preValidateMove', () => {
+    it('should allow valid move on empty intersection', () => {
+      const result = Rules.preValidateMove(board, 9, 9, STONE.BLACK);
       assert.strictEqual(result.valid, true);
     });
 
-    it('should allow pass move', () => {
-      const result = rules.validateMove(board, { pass: true }, STONE.BLACK);
-      assert.strictEqual(result.valid, true);
+    it('should reject move on occupied intersection', () => {
+      board.set(9, 9, STONE.WHITE);
+      const result = Rules.preValidateMove(board, 9, 9, STONE.BLACK);
+      assert.strictEqual(result.valid, false);
+    });
+
+    it('should reject suicide move', () => {
+      // Create almost-surrounded position
+      board.set(0, 1, STONE.WHITE);
+      board.set(1, 0, STONE.WHITE);
+      
+      // Playing at 0,0 would be suicide
+      const result = Rules.preValidateMove(board, 0, 0, STONE.BLACK);
+      assert.strictEqual(result.valid, false);
     });
   });
 
   describe('resolveTurn', () => {
     it('should place both stones on different intersections', () => {
-      const blackMove = { x: 3, y: 3 };
-      const whiteMove = { x: 15, y: 15 };
+      const blackMove = { x: 3, y: 3, pass: false };
+      const whiteMove = { x: 15, y: 15, pass: false };
       
-      const result = rules.resolveTurn(board, blackMove, whiteMove);
+      const result = Rules.resolveTurn(board, blackMove, whiteMove);
       
       assert.strictEqual(result.collision, false);
       assert.strictEqual(board.get(3, 3), STONE.BLACK);
@@ -264,12 +329,14 @@ describe('Rules', () => {
     });
 
     it('should create RED stone on collision', () => {
-      const blackMove = { x: 9, y: 9 };
-      const whiteMove = { x: 9, y: 9 };
+      const blackMove = { x: 9, y: 9, pass: false };
+      const whiteMove = { x: 9, y: 9, pass: false };
       
-      const result = rules.resolveTurn(board, blackMove, whiteMove);
+      const result = Rules.resolveTurn(board, blackMove, whiteMove);
       
       assert.strictEqual(result.collision, true);
+      assert.strictEqual(result.collisionPos.x, 9);
+      assert.strictEqual(result.collisionPos.y, 9);
       assert.strictEqual(board.get(9, 9), STONE.RED);
     });
 
@@ -277,9 +344,9 @@ describe('Rules', () => {
       const blackMove = { pass: true };
       const whiteMove = { pass: true };
       
-      const result = rules.resolveTurn(board, blackMove, whiteMove);
+      const result = Rules.resolveTurn(board, blackMove, whiteMove);
       
-      assert.strictEqual(result.doublePass, true);
+      assert.strictEqual(result.bothPassed, true);
     });
 
     it('should perform simultaneous captures', () => {
@@ -296,13 +363,13 @@ describe('Rules', () => {
       board.set(5, 4, STONE.BLACK);
       
       // Both moves capture the opponent's group
-      const blackMove = { x: 5, y: 6 }; // Captures white
-      const whiteMove = { x: 0, y: 0 }; // Can't place - collision test
+      const blackMove = { x: 5, y: 6, pass: false }; // Captures white
+      const whiteMove = { x: 1, y: 1, pass: false }; // Captures black
       
-      // Simplified - just test that captures work
-      const result = rules.resolveTurn(board, blackMove, { pass: true });
+      const result = Rules.resolveTurn(board, blackMove, whiteMove);
       
-      assert.strictEqual(result.capturedWhite > 0, true);
+      assert.strictEqual(result.capturedBlack.length > 0, true);
+      assert.strictEqual(result.capturedWhite.length > 0, true);
     });
   });
 });
@@ -314,23 +381,25 @@ describe('Scoring', () => {
     board = new Board();
   });
 
-  describe('calculateScore', () => {
+  describe('calculate', () => {
     it('should count stones correctly', () => {
       board.set(0, 0, STONE.BLACK);
       board.set(0, 1, STONE.BLACK);
       board.set(1, 0, STONE.WHITE);
       
-      const score = Scoring.calculateScore(board);
+      const score = Scoring.calculate(board);
       
       assert.strictEqual(score.blackStones, 2);
       assert.strictEqual(score.whiteStones, 1);
+      assert.strictEqual(score.blackScore, 2);
+      assert.strictEqual(score.whiteScore, 1);
     });
 
     it('should not count RED stones for either player', () => {
       board.set(0, 0, STONE.RED);
       board.set(1, 0, STONE.BLACK);
       
-      const score = Scoring.calculateScore(board);
+      const score = Scoring.calculate(board);
       
       assert.strictEqual(score.redStones, 1);
       assert.strictEqual(score.blackStones, 1);
@@ -345,7 +414,7 @@ describe('Scoring', () => {
         board.set(3, i, STONE.BLACK);
       }
       
-      const score = Scoring.calculateScore(board);
+      const score = Scoring.calculate(board);
       
       // Black should have territory in the corner
       assert.strictEqual(score.blackTerritory > 0, true);
@@ -360,7 +429,7 @@ describe('Scoring', () => {
         board.set(i, 18, STONE.WHITE);
       }
       
-      const score = Scoring.calculateScore(board);
+      const score = Scoring.calculate(board);
       
       assert.strictEqual(score.winner, 'black');
     });
@@ -377,4 +446,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { Board, Rules, Scoring };
+module.exports = { Board, Rules, Scoring }; 

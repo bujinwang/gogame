@@ -6,6 +6,7 @@ const { ipcMain } = require('electron');
 const GameServer = require('./server');
 const AIPlayer = require('./ai/ai-player');
 const GameEngine = require('./game/game-engine');
+const { WebRTCManager, SignalingHandler } = require('./webrtc');
 const { MSG, createMessage, parseMessage } = require('../shared/protocol');
 const { GAME_MODE, STONE } = require('../shared/constants');
 
@@ -13,25 +14,27 @@ let gameServer = null;
 let localClient = null;
 let aiPlayer = null;
 let aiEngine = null;
+let webRTCManager = null;
+let signalingHandler = null;
 
 function setupIpcHandlers(mainWindow) {
   /**
-   * Host a game - start WebSocket server
+   * Host a game (WebSocket LAN) - start server and wait for opponent
    */
   ipcMain.handle('host-game', async (event, settings) => {
     try {
-      if (gameServer) {
-        gameServer.stop();
-      }
+      // Stop any existing game/server
+      cleanup();
 
-      gameServer = new GameServer({ port: settings.port });
+      // Create a local game server
+      gameServer = new GameServer({ port: settings.port || 38765 });
       gameServer.onLog((msg) => {
         mainWindow.webContents.send('server-log', msg);
       });
 
       const serverInfo = await gameServer.start(settings);
 
-      // Connect the host as a local player
+      // Connect as local player (host is always black)
       localClient = gameServer.connectLocal(settings.playerName || 'Host');
       localClient.onMessage((data) => {
         mainWindow.webContents.send('game-message', data);
@@ -44,26 +47,26 @@ function setupIpcHandlers(mainWindow) {
   });
 
   /**
-   * Join a game - connect to remote server
+   * Join a game (WebSocket LAN) - connect to remote host
    */
   ipcMain.handle('join-game', async (event, settings) => {
     try {
+      // Stop any existing game/server
+      cleanup();
+
       const WebSocket = require('ws');
-      const ws = new WebSocket(`ws://${settings.host}:${settings.port}`);
+      const ws = new WebSocket(`ws://${settings.host}:${settings.port || 38765}`);
 
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           ws.close();
-          reject(new Error('Connection timeout'));
+          resolve({ success: false, error: 'Connection timed out' });
         }, 10000);
 
         ws.on('open', () => {
           clearTimeout(timeout);
 
-          // Send join message
-          ws.send(createMessage(MSG.JOIN, { playerName: settings.playerName || 'Guest' }));
-
-          // Forward messages to renderer
+          // Set up message forwarding
           ws.on('message', (data) => {
             mainWindow.webContents.send('game-message', data.toString());
           });
@@ -72,11 +75,124 @@ function setupIpcHandlers(mainWindow) {
             mainWindow.webContents.send('connection-lost');
           });
 
-          // Store reference
+          ws.on('error', (err) => {
+            console.error('WebSocket error:', err.message);
+          });
+
+          // Send join message
+          ws.send(createMessage(MSG.JOIN, {
+            playerName: settings.playerName || 'Guest'
+          }));
+
+          // Store the ws for future operations
           localClient = {
-            send: (msg) => ws.send(msg),
-            close: () => ws.close(),
-            ws: ws
+            send: (msg) => {
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(msg);
+              }
+            },
+            onMessage: (callback) => {
+              // Already set up above
+            },
+            close: () => {
+              ws.close();
+            }
+          };
+
+          resolve({ success: true });
+        });
+
+        ws.on('error', (err) => {
+          clearTimeout(timeout);
+          resolve({ success: false, error: err.message });
+        });
+      });
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  /**
+   * Host a WebRTC game - start signaling server and wait for peer connection
+   */
+  ipcMain.handle('host-webrtc-game', async (event, settings) => {
+    try {
+      // Stop any existing game server
+      cleanup();
+
+      // Create a local game server
+      gameServer = new GameServer({ port: settings.port || 38765 });
+      gameServer.onLog((msg) => {
+        mainWindow.webContents.send('server-log', msg);
+      });
+
+      const serverInfo = await gameServer.start(settings);
+
+      // Connect the host as a local player
+      localClient = gameServer.connectLocal(settings.playerName || 'Host');
+
+      // Forward game messages from local client to renderer
+      localClient.onMessage((data) => {
+        mainWindow.webContents.send('game-message', data);
+      });
+
+      return { success: true, ...serverInfo };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  /**
+   * Join a WebRTC game - connect to remote signaling server and establish peer connection
+   */
+  ipcMain.handle('join-webrtc-game', async (event, settings) => {
+    try {
+      // Stop any existing connections
+      cleanup();
+
+      const WebSocket = require('ws');
+      const ws = new WebSocket(`ws://${settings.host}:${settings.port || 38765}`);
+
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          ws.close();
+          resolve({ success: false, error: 'Connection timed out' });
+        }, 10000);
+
+        ws.on('open', () => {
+          clearTimeout(timeout);
+
+          // Set up message forwarding
+          ws.on('message', (data) => {
+            mainWindow.webContents.send('game-message', data.toString());
+          });
+
+          ws.on('close', () => {
+            mainWindow.webContents.send('connection-lost');
+          });
+
+          ws.on('error', (err) => {
+            console.error('WebSocket error:', err.message);
+          });
+
+          // Send join message
+          ws.send(createMessage(MSG.JOIN, {
+            playerName: settings.playerName || 'Guest'
+          }));
+
+          // Store the ws for future operations
+          localClient = {
+            send: (msg) => {
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(msg);
+              }
+            },
+            onMessage: (callback) => {
+              // Already set up above
+            },
+            close: () => {
+              ws.close();
+            }
           };
 
           resolve({ success: true });
@@ -97,9 +213,8 @@ function setupIpcHandlers(mainWindow) {
    */
   ipcMain.handle('start-ai-game', async (event, settings) => {
     try {
-      if (gameServer) {
-        gameServer.stop();
-      }
+      // Stop any existing game
+      cleanup();
 
       // Create a local game server
       gameServer = new GameServer({ port: settings.port || 38766 });
@@ -126,7 +241,7 @@ function setupIpcHandlers(mainWindow) {
         const msg = parseMessage(data);
         
         // When AI receives turn start, generate and submit a move
-        if (msg.type === MSG.TURN_START || msg.type === MSG.GAME_START) {
+        if (msg.type === MSG.TURN_START) {
           // Small delay to simulate thinking
           const thinkTime = settings.aiDifficulty === 'easy' ? 500 :
                            settings.aiDifficulty === 'hard' ? 3000 : 1500;
@@ -194,15 +309,7 @@ function setupIpcHandlers(mainWindow) {
    * Disconnect and clean up
    */
   ipcMain.handle('disconnect', async () => {
-    if (localClient) {
-      localClient.close();
-      localClient = null;
-    }
-    if (gameServer) {
-      gameServer.stop();
-      gameServer = null;
-    }
-    aiPlayer = null;
+    cleanup();
     return { success: true };
   });
 
@@ -224,7 +331,10 @@ function setupIpcHandlers(mainWindow) {
   });
 }
 
-function cleanupIpc() {
+/**
+ * Clean up all resources
+ */
+function cleanup() {
   if (localClient) {
     localClient.close();
     localClient = null;
@@ -233,7 +343,19 @@ function cleanupIpc() {
     gameServer.stop();
     gameServer = null;
   }
+  if (webRTCManager) {
+    webRTCManager.close();
+    webRTCManager = null;
+  }
+  if (signalingHandler) {
+    signalingHandler.close();
+    signalingHandler = null;
+  }
   aiPlayer = null;
+}
+
+function cleanupIpc() {
+  cleanup();
 }
 
 module.exports = { setupIpcHandlers, cleanupIpc };

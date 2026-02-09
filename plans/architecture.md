@@ -359,9 +359,13 @@ gogame/
 │   │   │   ├── rules.js        # Move validation and captures
 │   │   │   ├── scoring.js      # Territory scoring
 │   │   │   └── timer.js        # Time control
-│   │   └── ai/
-│   │       ├── ai-player.js    # AI interface
-│   │       └── mcts.js         # MCTS implementation
+│   │   ├── ai/
+│   │   │   ├── ai-player.js    # AI interface
+│   │   │   └── mcts.js         # MCTS implementation
+│   │   └── webrtc/
+│   │       ├── index.js            # Module exports
+│   │       ├── webrtc-manager.js   # RTCPeerConnection management
+│   │       └── signaling-handler.js # WebSocket signaling
 │   ├── renderer/               # Renderer process
 │   │   ├── index.html          # Main HTML
 │   │   ├── styles/
@@ -480,8 +484,87 @@ gogame/
 - Board texture and visual polish,
 - Move history panel
 
-### Phase 7: Packaging and Testing
+### Phase 7: WebRTC P2P Communication
+- WebRTC peer-to-peer connection establishment
+- Signaling server for SDP offer/answer and ICE candidate exchange
+- RTCDataChannel for direct game state synchronization
+- Fallback to WebSocket when WebRTC is unavailable
+
+### Phase 8: Packaging and Testing
 - Electron app packaging for macOS
 - End-to-end testing of all game modes
 - Edge case testing for simultaneous move scenarios
 - Performance optimization
+
+---
+
+## 13. WebRTC Integration
+
+### 13.1 Overview
+The application supports an optional WebRTC P2P mode alongside the primary WebSocket (LAN) mode. WebRTC allows direct player-to-player communication without routing all traffic through the host's game server, providing potentially lower latency for game moves.
+
+### 13.2 Architecture
+
+```mermaid
+graph TB
+    subgraph "Player A (Host)"
+        HA[Electron App]
+        HS[Signaling Server - WS]
+        HGE[Game Engine]
+    end
+    
+    subgraph "Player B (Client)"
+        BA[Electron App]
+    end
+    
+    HS <-->|WebSocket Signaling| BA
+    HA <-->|RTCDataChannel P2P| BA
+    HA --- HGE
+```
+
+### 13.3 Connection Modes
+
+| Mode | Transport | Use Case |
+|---|---|---|
+| Host Game (LAN) | WebSocket | Standard LAN play, host runs server |
+| Join Game (LAN) | WebSocket | Client connects to host's WS server |
+| P2P Host (WebRTC) | WebSocket signaling + RTCDataChannel | Direct P2P with signaling via host |
+| P2P Join (WebRTC) | WebSocket signaling + RTCDataChannel | Client joins P2P session |
+| vs AI | Local IPC | Single-player, no network |
+
+### 13.4 WebRTC Components
+
+```
+src/main/webrtc/
+├── index.js               # Module exports
+├── webrtc-manager.js      # RTCPeerConnection and DataChannel management
+└── signaling-handler.js   # WebSocket-based signaling for SDP/ICE exchange
+```
+
+- **WebRTCManager**: Creates and manages `RTCPeerConnection`, `RTCDataChannel`, handles offer/answer creation, and ICE candidate exchange
+- **SignalingHandler**: Manages WebSocket connection to signaling server for exchanging SDP offers/answers and ICE candidates
+
+### 13.5 Signaling Flow
+
+1. Host starts a WebSocket signaling server (reuses game server)
+2. Client connects to signaling server via WebSocket
+3. SDP offer/answer and ICE candidates are exchanged through signaling
+4. Once RTCDataChannel is established, game messages flow directly P2P
+5. Signaling server remains available as fallback
+
+### 13.6 Protocol Extensions
+
+Additional message types for WebRTC signaling (in `src/shared/protocol.js`):
+
+| Message Type | Purpose |
+|---|---|
+| `webrtc_offer` | SDP offer from offerer |
+| `webrtc_answer` | SDP answer from answerer |
+| `webrtc_ice_candidate` | ICE candidate exchange |
+| `webrtc_connected` | Confirmation of P2P connection |
+
+### 13.7 Fallback Strategy
+
+- If WebRTC connection fails, the system automatically falls back to WebSocket
+- The transport layer is abstracted so game logic is unaware of the underlying transport
+- Both transports use the same message protocol format

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ws: wss: stun: turn:">
   <title>同步围棋 - Simultaneous Go</title>
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/board.css">
@@ -33,6 +33,12 @@
           <span class="btn-icon">🤖</span>
           <span class="btn-text">人机对弈</span>
           <span class="btn-desc">vs AI</span>
+        </button>
+        
+        <button id="btn-webrtc" class="menu-btn accent">
+          <span class="btn-icon">🌐</span>
+          <span class="btn-text">P2P 对战</span>
+          <span class="btn-desc">WebRTC</span>
         </button>
       </div>
     </div>
@@ -147,6 +153,97 @@
       <div class="form-actions">
         <button id="btn-ai-back" class="btn-back">返回</button>
         <button id="btn-ai-start" class="btn-start">开始游戏</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WebRTC Setup Screen -->
+  <div id="screen-webrtc" class="screen">
+    <div class="setup-container">
+      <h2>WebRTC 对战</h2>
+      <div class="webrtc-options">
+        <button id="btn-webrtc-host" class="menu-btn primary">
+          <span class="btn-icon">🏠</span>
+          <span class="btn-text">创建房间</span>
+          <span class="btn-desc">Host Game</span>
+        </button>
+        
+        <button id="btn-webrtc-join" class="menu-btn secondary">
+          <span class="btn-icon">🔗</span>
+          <span class="btn-text">加入房间</span>
+          <span class="btn-desc">Join Game</span>
+        </button>
+      </div>
+      
+      <div class="form-actions">
+        <button id="btn-webrtc-back" class="btn-back">返回</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WebRTC Host Setup Screen -->
+  <div id="screen-webrtc-host" class="screen">
+    <div class="setup-container">
+      <h2>创建 P2P 房间</h2>
+      <div class="form-group">
+        <label for="webrtc-host-name">玩家名称</label>
+        <input type="text" id="webrtc-host-name" value="黑方" placeholder="输入名称">
+      </div>
+      <div class="form-group">
+        <label for="webrtc-host-time">基本用时</label>
+        <select id="webrtc-host-time">
+          <option value="600000">10 分钟</option>
+          <option value="900000">15 分钟</option>
+          <option value="1200000">20 分钟</option>
+          <option value="1800000" selected>30 分钟</option>
+          <option value="2700000">45 分钟</option>
+          <option value="3600000">1 小时</option>
+          <option value="5400000">1.5 小时</option>
+          <option value="7200000">2 小时</option>
+          <option value="10800000">3 小时</option>
+          <option value="18000000">5 小时</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="webrtc-host-port">端口</label>
+        <input type="number" id="webrtc-host-port" value="38765" min="1024" max="65535">
+      </div>
+      
+      <div id="webrtc-host-waiting" class="waiting-info" style="display:none;">
+        <div class="spinner"></div>
+        <p>等待对手加入...</p>
+        <p class="ip-info" id="webrtc-host-ip-info"></p>
+      </div>
+      
+      <div class="form-actions">
+        <button id="btn-webrtc-host-back" class="btn-back">返回</button>
+        <button id="btn-webrtc-host-start" class="btn-start">开始等待</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WebRTC Join Game Screen -->
+  <div id="screen-webrtc-join" class="screen">
+    <div class="setup-container">
+      <h2>加入 P2P 房间</h2>
+      <div class="form-group">
+        <label for="webrtc-join-name">玩家名称</label>
+        <input type="text" id="webrtc-join-name" value="白方" placeholder="输入名称">
+      </div>
+      <div class="form-group">
+        <label for="webrtc-join-host">主机地址</label>
+        <input type="text" id="webrtc-join-host" placeholder="例如: 192.168.1.100">
+      </div>
+      <div class="form-group">
+        <label for="webrtc-join-port">端口</label>
+        <input type="number" id="webrtc-join-port" value="38765" min="1024" max="65535">
+      </div>
+      
+      <div id="webrtc-join-status" class="status-info" style="display:none;"></div>
+      
+      <div class="form-actions">
+        <button id="btn-webrtc-join-back" class="btn-back">返回</button>
+        <button id="btn-webrtc-join-connect" class="btn-start">连接</button>
       </div>
     </div>
   </div>
