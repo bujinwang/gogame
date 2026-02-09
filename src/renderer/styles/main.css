@@ -4,27 +4,60 @@
  * Author: 步紧 (Bujin) | Version: 三宝001版
  */
 
+/* ========================================
+ * 🏝️ 三亚聂卫平纪念版配色方案
+ * Sanya Nie Weiping Memorial Edition
+ * ======================================== */
+
+/* 🌴 热带海岛风 - 主色系 */
 :root {
+  --sanya-coral: #FF6B6B;        /* 珊瑚红 - 点缀色 */
+  --sanya-ocean: #4ECDC4;         /* 热带海蓝 - 强调色 */
+  --sanya-sunset: #FFE66D;        /* 落日金 - 荣耀色 */
+  --sanya-sand: #F7DC6F;         /* 沙滩金 - 辅助色 */
+  
+  /* 🌴 椰风海韵 - 渐变色 */
+  --gradient-sunset: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #4ECDC4 100%);
+  --gradient-ocean: linear-gradient(180deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+  --gradient-sand: linear-gradient(45deg, #F7DC6F 0%, #FDEBD0 100%);
+  
+  /* ✨ 聂卫平精神色 */
+  --nwp-gold: #FFD700;            /* 金色 - 棋圣荣耀 */
+  --nwp-red: #C0392B;             /* 丹砂红 - 中国红 */
+  --nwp-jade: #27AE60;            /* 翡翠绿 - 椰树青 */
+  
+  /* 纪念版棋盘配色 */
+  --board-memorial: #E8D5A3;        /* 暖色榧木 */
+  --board-memorial-glow: rgba(255, 215, 0, 0.15);  /* 金色光晕 */
+  --white-stone-memorial: #F8F8FF;  /* 象牙白 */
+  --black-stone-memorial: #1C1C1C;  /* 墨黑 */
+
+  /* 基础配色 - 保留原有逻辑 */
   --bg-primary: #1a1a2e;
   --bg-secondary: #16213e;
   --bg-card: #0f3460;
   --bg-hover: #1a4a7a;
   --text-primary: #e8e8e8;
   --text-secondary: #a0a0b0;
-  --text-accent: #64ffda;
-  --accent-primary: #e94560;
-  --accent-secondary: #0f3460;
-  --accent-gold: #ffd700;
-  --border-color: #2a2a4a;
+  --text-accent: var(--sanya-sunset);  /* 修改为日落金 */
+  --accent-primary: var(--sanya-coral); /* 修改为珊瑚红 */
+  --accent-secondary: var(--sanya-ocean); /* 修改为海洋蓝 */
+  --accent-gold: var(--nwp-gold);      /* 金色 */
+  --border-color: rgba(255, 215, 0, 0.2); /* 金色边框 */
   --black-stone: #1a1a1a;
   --white-stone: #f0f0f0;
-  --red-stone: #ff2222;
+  --red-stone: var(--sanya-coral);
   --success: #4caf50;
-  --warning: #ff9800;
-  --danger: #f44336;
-  --board-color: #dcb35c;
+  --warning: var(--sanya-sunset);
+  --danger: var(--sanya-coral);
+  --board-color: var(--board-memorial);
   --board-line: #2a1f0e;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  
+  /* 纪念版光晕 */
+  --glow-gold: 0 0 20px rgba(255, 215, 0, 0.3);
+  --glow-coral: 0 0 15px rgba(255, 107, 107, 0.4);
+  --glow-ocean: 0 0 15px rgba(78, 205, 196, 0.4);
 }
 
 * {
@@ -107,4 +140,230 @@ body {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 15px auto;
+}
+
+/* ========================================
+ * 🏝️ 三亚聂卫平纪念版动画特效
+ * ======================================== */
+
+/* ✨ 闪烁动画 */
+@keyframes shimmer {
+  0%, 100% { 
+    filter: brightness(1);
+    opacity: 1;
+  }
+  50% { 
+    filter: brightness(1.3);
+    opacity: 0.85;
+  }
+}
+
+@keyframes shimmer-gold {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+  }
+}
+
+/* 🌊 海浪浮动动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+    opacity: 1;
+  }
+}
+
+/* 🔥 火焰跳动动画 */
+@keyframes flicker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(0.98);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+/* ⭐ 星星闪烁 */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 🌅 日落渐变动画 */
+@keyframes sunset-glow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 🎵 音频波动动画 */
+@keyframes audio-wave {
+  0%, 100% {
+    height: 3px;
+  }
+  50% {
+    height: 12px;
+  }
+}
+
+/* 🏆 胜利烟花效果 */
+@keyframes firework {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* 🌴 粒子容器 */
+.particle-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* 🌟 纪念版标题效果 */
+.title-memorial {
+  font-family: 'STKaiti', 'KaiTi', serif;
+  background: var(--gradient-sunset);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-gold 3s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+/* 🔘 纪念版按钮 */
+.btn-memorial {
+  background: var(--gradient-sunset);
+  border: none;
+  color: #1A1A2E;
+  font-weight: 700;
+  padding: 18px 35px;
+  border-radius: 30px;
+  box-shadow: var(--glow-coral);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-memorial::before {
+  content: '✦';
+  position: absolute;
+  left: 15px;
+  opacity: 0.6;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.btn-memorial::after {
+  content: '✦';
+  position: absolute;
+  right: 15px;
+  opacity: 0.6;
+  animation: twinkle 2s ease-in-out infinite 1s;
+}
+
+.btn-memorial:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glow-gold);
+}
+
+/* 💫 卡片玻璃效果 */
+.glass-memorial {
+  background: linear-gradient(135deg, 
+    rgba(255, 107, 107, 0.1) 0%,
+    rgba(78, 205, 196, 0.1) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+}
+
+/* 🎮 计时器纪念版 */
+.timer-memorial {
+  background: linear-gradient(180deg,
+    rgba(26, 26, 46, 0.95) 0%,
+    rgba(15, 52, 96, 0.95) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 15px;
+  font-family: 'Courier New', monospace;
+}
+
+.timer-memorial .time-value {
+  background: var(--gradient-sunset);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+/* 🏝️ 背景装饰 */
+.bg-decoration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.bg-decoration::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.bg-decoration::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: 15%;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(78, 205, 196, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite 1s;
 }

@@ -4,42 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ws: wss: stun: turn:">
-  <title>同弈 (SyncGo) | 三宝001版</title>
+  <title>🏝️ 同弈 | 三亚纪念版</title>
   <meta name="author" content="步紧 (Bujin)">
-  <meta name="description" content="同弈 (SyncGo) - 三宝棋道工作室出品 | 三宝001版">
+  <meta name="description" content="同弈 (SyncGo) - 三宝棋道工作室出品 | 三亚纪念版">
   <meta name="copyright" content="Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio)">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/board.css">
   <link rel="stylesheet" href="styles/ui.css">
 </head>
 <body>
+  <!-- 🏝️ 背景装饰 -->
+  <div class="bg-decoration"></div>
+  
   <!-- Home Screen -->
   <div id="screen-home" class="screen active">
     <div class="home-container">
-      <h1 class="game-title">同弈</h1>
-      <p class="game-subtitle">SyncGo</p>
-      <p class="game-version">三宝001版 v1.0.0</p>
+      <h1 class="game-title title-memorial">天涯·弈魂</h1>
+      <p class="game-subtitle">SyncGo · Sanya Memorial Edition</p>
+      <p class="game-version">🏝️ 三亚纪念版 2026春节 🏝️</p>
       
       <div class="menu-buttons">
-        <button id="btn-host" class="menu-btn primary">
+        <button id="btn-host" class="menu-btn primary btn-memorial">
           <span class="btn-icon">🏠</span>
           <span class="btn-text">创建房间</span>
           <span class="btn-desc">Host Game</span>
         </button>
         
-        <button id="btn-join" class="menu-btn secondary">
+        <button id="btn-join" class="menu-btn secondary btn-memorial-secondary">
           <span class="btn-icon">🔗</span>
           <span class="btn-text">加入房间</span>
           <span class="btn-desc">Join Game</span>
         </button>
         
-        <button id="btn-ai" class="menu-btn accent">
+        <button id="btn-ai" class="menu-btn accent btn-memorial-secondary">
           <span class="btn-icon">🤖</span>
           <span class="btn-text">人机对弈</span>
           <span class="btn-desc">vs AI</span>
         </button>
         
-        <button id="btn-webrtc" class="menu-btn accent">
+        <button id="btn-webrtc" class="menu-btn accent btn-memorial-secondary">
           <span class="btn-icon">🌐</span>
           <span class="btn-text">P2P 对战</span>
           <span class="btn-desc">WebRTC</span>
@@ -55,7 +58,7 @@
 
   <!-- Host Setup Screen -->
   <div id="screen-host" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>创建房间</h2>
       <div class="form-group">
         <label for="host-name">玩家名称</label>
@@ -89,14 +92,14 @@
       
       <div class="form-actions">
         <button id="btn-host-back" class="btn-back">返回</button>
-        <button id="btn-host-start" class="btn-start">开始等待</button>
+        <button id="btn-host-start" class="btn-start btn-memorial">开始等待</button>
       </div>
     </div>
   </div>
 
   <!-- Join Game Screen -->
   <div id="screen-join" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>加入房间</h2>
       <div class="form-group">
         <label for="join-name">玩家名称</label>
@@ -115,14 +118,14 @@
       
       <div class="form-actions">
         <button id="btn-join-back" class="btn-back">返回</button>
-        <button id="btn-join-connect" class="btn-start">连接</button>
+        <button id="btn-join-connect" class="btn-start btn-memorial">连接</button>
       </div>
     </div>
   </div>
 
   <!-- AI Setup Screen -->
   <div id="screen-ai" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>人机对弈</h2>
       <div class="form-group">
         <label for="ai-name">玩家名称</label>
@@ -161,23 +164,23 @@
       
       <div class="form-actions">
         <button id="btn-ai-back" class="btn-back">返回</button>
-        <button id="btn-ai-start" class="btn-start">开始游戏</button>
+        <button id="btn-ai-start" class="btn-start btn-memorial">开始游戏</button>
       </div>
     </div>
   </div>
 
   <!-- WebRTC Setup Screen -->
   <div id="screen-webrtc" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>WebRTC 对战</h2>
       <div class="webrtc-options">
-        <button id="btn-webrtc-host" class="menu-btn primary">
+        <button id="btn-webrtc-host" class="menu-btn primary btn-memorial">
           <span class="btn-icon">🏠</span>
           <span class="btn-text">创建房间</span>
           <span class="btn-desc">Host Game</span>
         </button>
         
-        <button id="btn-webrtc-join" class="menu-btn secondary">
+        <button id="btn-webrtc-join" class="menu-btn secondary btn-memorial-secondary">
           <span class="btn-icon">🔗</span>
           <span class="btn-text">加入房间</span>
           <span class="btn-desc">Join Game</span>
@@ -192,7 +195,7 @@
 
   <!-- WebRTC Host Setup Screen -->
   <div id="screen-webrtc-host" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>创建 P2P 房间</h2>
       <div class="form-group">
         <label for="webrtc-host-name">玩家名称</label>
@@ -226,14 +229,14 @@
       
       <div class="form-actions">
         <button id="btn-webrtc-host-back" class="btn-back">返回</button>
-        <button id="btn-webrtc-host-start" class="btn-start">开始等待</button>
+        <button id="btn-webrtc-host-start" class="btn-start btn-memorial">开始等待</button>
       </div>
     </div>
   </div>
 
   <!-- WebRTC Join Game Screen -->
   <div id="screen-webrtc-join" class="screen">
-    <div class="setup-container">
+    <div class="setup-container glass-memorial">
       <h2>加入 P2P 房间</h2>
       <div class="form-group">
         <label for="webrtc-join-name">玩家名称</label>
@@ -266,7 +269,7 @@
           <input type="number" id="webrtc-join-port" value="38765" min="1024" max="65535">
         </div>
         <div class="form-actions" style="margin-top: 0.5rem;">
-          <button id="btn-webrtc-join-connect" class="btn-start" style="width:100%;">手动连接</button>
+          <button id="btn-webrtc-join-connect" class="btn-start btn-memorial" style="width:100%;">手动连接</button>
         </div>
       </div>
       
@@ -283,26 +286,26 @@
     <div class="game-layout">
       <!-- Left Panel - Player Info -->
       <div class="side-panel left-panel">
-        <div class="player-card" id="black-player-card">
+        <div class="player-card player-card-memorial" id="black-player-card">
           <div class="player-stone black-stone-icon"></div>
           <div class="player-info">
             <span class="player-name" id="black-player-name">黑方</span>
             <span class="player-captures" id="black-captures">提子: 0</span>
           </div>
-          <div class="timer-display" id="black-timer">
-            <span class="timer-main" id="black-time-main">30:00</span>
+          <div class="timer-display timer-memorial" id="black-timer">
+            <span class="timer-main time-value" id="black-time-main">30:00</span>
             <span class="timer-byoyomi" id="black-byoyomi">读秒: 3×30s</span>
           </div>
         </div>
         
-        <div class="player-card" id="white-player-card">
+        <div class="player-card player-card-memorial" id="white-player-card">
           <div class="player-stone white-stone-icon"></div>
           <div class="player-info">
             <span class="player-name" id="white-player-name">白方</span>
             <span class="player-captures" id="white-captures">提子: 0</span>
           </div>
-          <div class="timer-display" id="white-timer">
-            <span class="timer-main" id="white-time-main">30:00</span>
+          <div class="timer-display timer-memorial" id="white-timer">
+            <span class="timer-main time-value" id="white-time-main">30:00</span>
             <span class="timer-byoyomi" id="white-byoyomi">读秒: 3×30s</span>
           </div>
         </div>
@@ -317,7 +320,7 @@
       </div>
 
       <!-- Center - Board -->
-      <div class="board-container">
+      <div class="board-container board-background">
         <canvas id="game-board"></canvas>
       </div>
 
@@ -342,8 +345,8 @@
 
   <!-- Game Over Screen -->
   <div id="screen-result" class="screen">
-    <div class="result-container">
-      <h2 id="result-title">游戏结束</h2>
+    <div class="result-container glass-memorial">
+      <h2 id="result-title">🏆 游戏结束 🏆</h2>
       <div class="result-scores">
         <div class="score-card black-score">
           <div class="score-stone black-stone-icon"></div>
@@ -361,24 +364,34 @@
       </div>
       <p class="result-reason" id="result-reason"></p>
       <div class="result-actions">
-        <button id="btn-result-home" class="menu-btn primary">返回主页</button>
+        <button id="btn-result-home" class="menu-btn primary btn-memorial">返回主页</button>
       </div>
     </div>
   </div>
 
   <!-- Rules Modal -->
   <div id="modal-rules" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h2>同弈规则</h2>
-      <div class="rules-text">
+    <div class="modal-content glass-memorial">
+      <h2>🏝️ 同弈规则 (SyncGo Rules)</h2>
+      <div class="rules-content">
         <h3>基本规则</h3>
-        <p>同弈是围棋的变体，双方在每一步中<strong>同时下棋</strong>。</p>
-        
-        <h3>落子规则</h3>
-        <ul>
-          <li>每一步中，黑白双方各自选择一个位置落子（或虚手）</li>
-          <li>双方都提交后，才在棋盘上显示双方的棋子</li>
-          <li>如果双方下在同一个位置，该位置变为<strong style="color:#ff4444;">红色棋子</strong></li>
-        </ul>
-        
-        <h3
+        <p>同弈是一种双方同时落子的围棋变体。每回合双方同时选择落子位置，然后同时揭晓。</p>
+        <h3>碰撞规则</h3>
+        <p>当双方落在同一位置时，产生"碰撞"，该位置出现红色标记棋子。红子不属于任何一方，但会占据该位置。</p>
+        <h3>计时规则</h3>
+        <p>采用日本式读秒规则。基本用时用完后进入读秒阶段（3次30秒读秒）。</p>
+        <h3>胜负判定</h3>
+        <p>双方虚手（Pass）后游戏结束，按中国规则计算胜负（贴7.5目）。</p>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-close-rules" class="btn-start btn-memorial">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/webrtc-client.js"></script>
+  <script src="js/memorial-effects.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
