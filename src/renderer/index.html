@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ws: wss: stun: turn:">
-  <title>🏝️ 同弈 | 三亚纪念版</title>
+  <title>✨ 同弈 | 天涯·归魂</title>
   <meta name="author" content="步紧 (Bujin)">
-  <meta name="description" content="同弈 (SyncGo) - 三宝棋道工作室出品 | 三亚纪念版">
+  <meta name="description" content="同弈 (SyncGo) - 三宝棋道工作室出品 | 天涯·归魂纪念版">
   <meta name="copyright" content="Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio)">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/board.css">
@@ -15,13 +15,23 @@
 <body>
   <!-- 🏝️ 背景装饰 -->
   <div class="bg-decoration"></div>
+
+  <!-- 🎵 背景音乐控制 -->
+  <div class="bg-music-control" id="bg-music-control" title="背景音乐">
+    <button id="btn-music-toggle" class="music-btn" title="播放/暂停">
+      <span class="music-icon">🎵</span>
+    </button>
+    <div class="music-volume-container">
+      <input type="range" id="music-volume" class="volume-slider" min="0" max="100" value="40" title="音量">
+    </div>
+  </div>
   
   <!-- Home Screen -->
   <div id="screen-home" class="screen active">
     <div class="home-container">
-      <h1 class="game-title title-memorial">天涯·弈魂</h1>
-      <p class="game-subtitle">SyncGo · Sanya Memorial Edition</p>
-      <p class="game-version">🏝️ 三亚纪念版 2026春节 🏝️</p>
+      <h1 class="game-title title-memorial">天涯·归魂</h1>
+      <p class="game-subtitle">SyncGo · Tianya Returning Soul</p>
+      <p class="game-version">✨ 天涯·归魂纪念版 2026春节 ✨</p>
       
       <div class="menu-buttons">
         <button id="btn-host" class="menu-btn primary btn-memorial">
@@ -44,8 +54,8 @@
         
         <button id="btn-webrtc" class="menu-btn accent btn-memorial-secondary">
           <span class="btn-icon">🌐</span>
-          <span class="btn-text">P2P 对战</span>
-          <span class="btn-desc">WebRTC</span>
+          <span class="btn-text">联机对战</span>
+          <span class="btn-desc">无需服务器</span>
         </button>
       </div>
       
@@ -172,7 +182,7 @@
   <!-- WebRTC Setup Screen -->
   <div id="screen-webrtc" class="screen">
     <div class="setup-container glass-memorial">
-      <h2>WebRTC 对战</h2>
+      <h2>联机对战</h2>
       <div class="webrtc-options">
         <button id="btn-webrtc-host" class="menu-btn primary btn-memorial">
           <span class="btn-icon">🏠</span>
@@ -196,7 +206,7 @@
   <!-- WebRTC Host Setup Screen -->
   <div id="screen-webrtc-host" class="screen">
     <div class="setup-container glass-memorial">
-      <h2>创建 P2P 房间</h2>
+      <h2>创建联机房间</h2>
       <div class="form-group">
         <label for="webrtc-host-name">玩家名称</label>
         <input type="text" id="webrtc-host-name" value="黑方" placeholder="输入名称">
@@ -237,7 +247,7 @@
   <!-- WebRTC Join Game Screen -->
   <div id="screen-webrtc-join" class="screen">
     <div class="setup-container glass-memorial">
-      <h2>加入 P2P 房间</h2>
+      <h2>加入联机房间</h2>
       <div class="form-group">
         <label for="webrtc-join-name">玩家名称</label>
         <input type="text" id="webrtc-join-name" value="白方" placeholder="输入名称">

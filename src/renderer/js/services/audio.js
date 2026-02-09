@@ -10,6 +10,12 @@ class AudioService {
         this.enabled = true;
         this.volume = 0.5;
         this.initialized = false;
+        
+        // Background music
+        this.bgMusic = null;
+        this.bgMusicVolume = 0.4;
+        this.bgMusicPlaying = false;
+        this.bgMusicLoop = true;
     }
 
     /**
@@ -390,6 +396,122 @@ class AudioService {
      */
     getVolume() {
         return this.volume;
+    }
+
+    /**
+     * Load and prepare background music
+     * @param {string} src - Path to the audio file (default: 天涯归魂.mp3)
+     */
+    async loadBackgroundMusic(src = '../../scripts/天涯归魂.mp3') {
+        try {
+            this.bgMusic = new Audio(src);
+            this.bgMusic.loop = this.bgMusicLoop;
+            this.bgMusic.volume = this.bgMusicVolume;
+            
+            // Wait for metadata
+            await new Promise((resolve) => {
+                this.bgMusic.addEventListener('loadedmetadata', resolve, { once: true });
+            });
+            
+            console.log('Background music loaded:', src);
+            return true;
+        } catch (error) {
+            console.warn('Failed to load background music:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Play background music
+     * @param {boolean} loop - Whether to loop the music (default: true)
+     */
+    async playBackgroundMusic(loop = true) {
+        if (!this.enabled) return;
+        
+        await this.resume();
+        
+        try {
+            if (!this.bgMusic) {
+                await this.loadBackgroundMusic();
+            }
+            
+            this.bgMusic.loop = loop;
+            this.bgMusic.volume = this.bgMusicVolume;
+            
+            const playPromise = this.bgMusic.play();
+            if (playPromise !== undefined) {
+                await playPromise;
+            }
+            
+            this.bgMusicPlaying = true;
+            console.log('Background music started');
+        } catch (error) {
+            console.warn('Failed to play background music:', error);
+        }
+    }
+
+    /**
+     * Pause background music
+     */
+    pauseBackgroundMusic() {
+        if (this.bgMusic && this.bgMusicPlaying) {
+            this.bgMusic.pause();
+            this.bgMusicPlaying = false;
+            console.log('Background music paused');
+        }
+    }
+
+    /**
+     * Stop background music
+     */
+    stopBackgroundMusic() {
+        if (this.bgMusic) {
+            this.bgMusic.pause();
+            this.bgMusic.currentTime = 0;
+            this.bgMusicPlaying = false;
+            console.log('Background music stopped');
+        }
+    }
+
+    /**
+     * Set background music volume
+     * @param {number} volume - 0.0 to 1.0
+     */
+    setBackgroundMusicVolume(volume) {
+        this.bgMusicVolume = Math.max(0, Math.min(1, volume));
+        if (this.bgMusic) {
+            this.bgMusic.volume = this.bgMusicVolume;
+        }
+    }
+
+    /**
+     * Toggle background music play/pause
+     */
+    async toggleBackgroundMusic() {
+        if (this.bgMusicPlaying) {
+            this.pauseBackgroundMusic();
+        } else {
+            await this.playBackgroundMusic();
+        }
+        return this.bgMusicPlaying;
+    }
+
+    /**
+     * Check if background music is playing
+     */
+    isBackgroundMusicPlaying() {
+        return this.bgMusicPlaying;
+    }
+
+    /**
+     * Set background music loop
+     * @param {boolean} loop - Whether to loop
+     */
+    setBackgroundMusicLoop(loop) {
+        this.bgMusicLoop = loop;
+        if (this.bgMusic) {
+            this.bgMusic.loop = loop;
+        }
     }
 }
 

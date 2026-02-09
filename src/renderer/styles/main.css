@@ -1,63 +1,66 @@
 /**
  * 同步围棋 (Simultaneous Go) - Main Styles
  * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
- * Author: 步紧 (Bujin) | Version: 三宝001版
+ * Author: 步紧 (Bujin) | Version: 天涯·归魂版
  */
 
 /* ========================================
- * 🏝️ 三亚聂卫平纪念版配色方案
- * Sanya Nie Weiping Memorial Edition
+ * ✨ 天涯·归魂配色方案
+ * Tianya · Returning Soul Theme
  * ======================================== */
 
-/* 🌴 热带海岛风 - 主色系 */
+/* 🌌 归魂神秘色系 - 主色 */
 :root {
-  --sanya-coral: #FF6B6B;        /* 珊瑚红 - 点缀色 */
-  --sanya-ocean: #4ECDC4;         /* 热带海蓝 - 强调色 */
-  --sanya-sunset: #FFE66D;        /* 落日金 - 荣耀色 */
-  --sanya-sand: #F7DC6F;         /* 沙滩金 - 辅助色 */
+  /* ✨ 归魂神秘主色 */
+  --tianya-deep: #1a1a2e;         /* 深邃夜空 */
+  --tianya-purple: #4a1942;       /* 神秘紫 */
+  --tianya-gold: #ffd700;         /* 归魂金光 */
+  --tianya-silver: #c0c0c0;       /* 银魂 */
+  --tianya-cyan: #00bcd4;         /* 幽蓝光 */
   
-  /* 🌴 椰风海韵 - 渐变色 */
-  --gradient-sunset: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #4ECDC4 100%);
-  --gradient-ocean: linear-gradient(180deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
-  --gradient-sand: linear-gradient(45deg, #F7DC6F 0%, #FDEBD0 100%);
+  /* 🌌 渐变色系 */
+  --gradient-soul: linear-gradient(135deg, #4a1942 0%, #1a1a2e 50%, #0d0d1a 100%);
+  --gradient-gold: linear-gradient(135deg, #ffd700 0%, #ffec8b 50%, #ffd700 100%);
+  --gradient-mist: linear-gradient(180deg, rgba(74, 25, 66, 0.3) 0%, rgba(26, 26, 46, 0.8) 100%);
+  --gradient-ethereal: linear-gradient(45deg, #1a1a2e 0%, #4a1942 50%, #2d1b4e 100%);
   
-  /* ✨ 聂卫平精神色 */
-  --nwp-gold: #FFD700;            /* 金色 - 棋圣荣耀 */
-  --nwp-red: #C0392B;             /* 丹砂红 - 中国红 */
-  --nwp-jade: #27AE60;            /* 翡翠绿 - 椰树青 */
+  /* 🌟 魂光特效色 */
+  --soul-glow: rgba(255, 215, 0, 0.4);
+  --spirit-glow: rgba(0, 188, 212, 0.3);
+  --mystery-glow: rgba(74, 25, 66, 0.5);
   
-  /* 纪念版棋盘配色 */
-  --board-memorial: #E8D5A3;        /* 暖色榧木 */
-  --board-memorial-glow: rgba(255, 215, 0, 0.15);  /* 金色光晕 */
-  --white-stone-memorial: #F8F8FF;  /* 象牙白 */
-  --black-stone-memorial: #1C1C1C;  /* 墨黑 */
-
-  /* 基础配色 - 保留原有逻辑 */
-  --bg-primary: #1a1a2e;
+  /* 棋盘配色 */
+  --board-soul: #2d2d3a;           /* 幽暗榧木 */
+  --board-soul-glow: rgba(255, 215, 0, 0.1);
+  --white-stone-soul: #e8e8f0;     /* 魂白 */
+  --black-stone-soul: #0a0a12;     /* 墨魂 */
+  
+  /* 基础配色 - 神秘风 */
+  --bg-primary: var(--tianya-deep);
   --bg-secondary: #16213e;
-  --bg-card: #0f3460;
-  --bg-hover: #1a4a7a;
-  --text-primary: #e8e8e8;
-  --text-secondary: #a0a0b0;
-  --text-accent: var(--sanya-sunset);  /* 修改为日落金 */
-  --accent-primary: var(--sanya-coral); /* 修改为珊瑚红 */
-  --accent-secondary: var(--sanya-ocean); /* 修改为海洋蓝 */
-  --accent-gold: var(--nwp-gold);      /* 金色 */
-  --border-color: rgba(255, 215, 0, 0.2); /* 金色边框 */
-  --black-stone: #1a1a1a;
-  --white-stone: #f0f0f0;
-  --red-stone: var(--sanya-coral);
-  --success: #4caf50;
-  --warning: var(--sanya-sunset);
-  --danger: var(--sanya-coral);
-  --board-color: var(--board-memorial);
-  --board-line: #2a1f0e;
-  --shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  --bg-card: rgba(74, 25, 66, 0.3);
+  --bg-hover: rgba(255, 215, 0, 0.15);
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888a0;
+  --text-accent: var(--tianya-gold);
+  --accent-primary: var(--tianya-gold);
+  --accent-secondary: var(--tianya-cyan);
+  --accent-silver: var(--tianya-silver);
+  --border-color: rgba(255, 215, 0, 0.3);
+  --black-stone: var(--black-stone-soul);
+  --white-stone: var(--white-stone-soul);
+  --red-stone: #c41818;
+  --success: #00c853;
+  --warning: var(--tianya-gold);
+  --danger: #c41818;
+  --board-color: var(--board-soul);
+  --board-line: #4a4a5a;
+  --shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
   
-  /* 纪念版光晕 */
-  --glow-gold: 0 0 20px rgba(255, 215, 0, 0.3);
-  --glow-coral: 0 0 15px rgba(255, 107, 107, 0.4);
-  --glow-ocean: 0 0 15px rgba(78, 205, 196, 0.4);
+  /* 归魂特效 */
+  --glow-gold: 0 0 20px rgba(255, 215, 0, 0.4);
+  --glow-spirit: 0 0 15px rgba(0, 188, 212, 0.4);
+  --glow-mystery: 0 0 25px rgba(74, 25, 66, 0.5);
 }
 
 * {
@@ -143,96 +146,101 @@ body {
 }
 
 /* ========================================
- * 🏝️ 三亚聂卫平纪念版动画特效
+ * ✨ 天涯·归魂动画特效
  * ======================================== */
 
-/* ✨ 闪烁动画 */
-@keyframes shimmer {
+/* 🌟 魂光闪烁 */
+@keyframes soul-glow {
   0%, 100% { 
     filter: brightness(1);
-    opacity: 1;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
   }
   50% { 
-    filter: brightness(1.3);
-    opacity: 0.85;
+    filter: brightness(1.2);
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.3);
   }
 }
 
-@keyframes shimmer-gold {
+/* 🌊 魂雾飘动 */
+@keyframes mist-float {
   0%, 100% {
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transform: translateY(0) translateX(0);
+    opacity: 0.4;
   }
-  50% {
-    text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
-  }
-}
-
-/* 🌊 海浪浮动动画 */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
+  25% {
+    transform: translateY(-5px) translateX(5px);
     opacity: 0.6;
   }
   50% {
-    transform: translateY(-10px) rotate(5deg);
-    opacity: 1;
-  }
-}
-
-/* 🔥 火焰跳动动画 */
-@keyframes flicker {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  25% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(0.98);
-    opacity: 1;
+    transform: translateY(-10px) translateX(0);
+    opacity: 0.5;
   }
   75% {
-    transform: scale(1.02);
-    opacity: 0.95;
+    transform: translateY(-5px) translateX(-5px);
+    opacity: 0.7;
   }
 }
 
-/* ⭐ 星星闪烁 */
-@keyframes twinkle {
+/* ✨ 星辰闪烁 */
+@keyframes star-twinkle {
   0%, 100% {
-    opacity: 0.3;
+    opacity: 0.2;
     transform: scale(0.8);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
   }
   50% {
     opacity: 1;
     transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   }
 }
 
-/* 🌅 日落渐变动画 */
-@keyframes sunset-glow {
+/* 🔮 幽光脉动 */
+@keyframes spirit-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 188, 212, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+/* 🌫️ 归魂渐变动画 */
+@keyframes soul-gradient {
   0%, 100% {
     background-position: 0% 50%;
+    filter: hue-rotate(0deg);
   }
   50% {
     background-position: 100% 50%;
+    filter: hue-rotate(10deg);
   }
 }
 
-/* 🎵 音频波动动画 */
-@keyframes audio-wave {
+/* 🦋 魂蝶飞舞 */
+@keyframes soul-butterfly {
   0%, 100% {
-    height: 3px;
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) rotate(5deg);
+    opacity: 0.5;
   }
   50% {
-    height: 12px;
+    transform: translateY(-30px) rotate(-5deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-15px) rotate(3deg);
+    opacity: 0.6;
   }
 }
 
-/* 🏆 胜利烟花效果 */
-@keyframes firework {
+/* ⭐ 粒子绽放 */
+@keyframes particle-bloom {
   0% {
     transform: scale(0);
     opacity: 1;
@@ -241,43 +249,56 @@ body {
     opacity: 1;
   }
   100% {
-    transform: scale(1);
+    transform: scale(2);
     opacity: 0;
   }
 }
 
-/* 🌴 粒子容器 */
-.particle-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
+/* 🌙 月华流转 */
+@keyframes moon-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 215, 0, 0.3);
+  }
 }
 
-/* 🌟 纪念版标题效果 */
+/* 🌟 归魂标题效果 */
 .title-memorial {
   font-family: 'STKaiti', 'KaiTi', serif;
-  background: var(--gradient-sunset);
+  background: var(--gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer-gold 3s ease-in-out infinite;
+  animation: soul-gold-pulse 3s ease-in-out infinite;
   background-size: 200% 200%;
+  position: relative;
 }
 
-/* 🔘 纪念版按钮 */
+@keyframes soul-gold-pulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.7), 0 0 80px rgba(255, 215, 0, 0.4);
+    filter: brightness(1.2);
+  }
+}
+
+/* 🔘 归魂按钮 */
 .btn-memorial {
-  background: var(--gradient-sunset);
-  border: none;
-  color: #1A1A2E;
+  background: linear-gradient(135deg, 
+    rgba(255, 215, 0, 0.9) 0%,
+    rgba(255, 236, 139, 0.9) 50%,
+    rgba(255, 215, 0, 0.9) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  color: #1a1a2e;
   font-weight: 700;
   padding: 18px 35px;
   border-radius: 30px;
-  box-shadow: var(--glow-coral);
+  box-shadow: var(--glow-gold);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -287,53 +308,60 @@ body {
   content: '✦';
   position: absolute;
   left: 15px;
-  opacity: 0.6;
-  animation: twinkle 2s ease-in-out infinite;
+  opacity: 0.7;
+  animation: star-twinkle 2s ease-in-out infinite;
 }
 
 .btn-memorial::after {
   content: '✦';
   position: absolute;
   right: 15px;
-  opacity: 0.6;
-  animation: twinkle 2s ease-in-out infinite 1s;
+  opacity: 0.7;
+  animation: star-twinkle 2s ease-in-out infinite 1s;
 }
 
 .btn-memorial:hover {
   transform: translateY(-3px);
-  box-shadow: var(--glow-gold);
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+  background: linear-gradient(135deg, 
+    rgba(255, 236, 139, 1) 0%,
+    rgba(255, 215, 0, 1) 50%,
+    rgba(255, 236, 139, 1) 100%);
 }
 
-/* 💫 卡片玻璃效果 */
+/* 🌫️ 玻璃卡片效果 */
 .glass-memorial {
   background: linear-gradient(135deg, 
-    rgba(255, 107, 107, 0.1) 0%,
-    rgba(78, 205, 196, 0.1) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+    rgba(74, 25, 66, 0.2) 0%,
+    rgba(26, 26, 46, 0.4) 100%);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 20px;
+  box-shadow: var(--glow-mystery);
 }
 
-/* 🎮 计时器纪念版 */
+/* 🔮 计时器归魂版 */
 .timer-memorial {
   background: linear-gradient(180deg,
     rgba(26, 26, 46, 0.95) 0%,
-    rgba(15, 52, 96, 0.95) 100%);
-  border: 1px solid rgba(255, 215, 0, 0.2);
+    rgba(74, 25, 66, 0.95) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
   border-radius: 15px;
   font-family: 'Courier New', monospace;
+  box-shadow: var(--glow-spirit);
 }
 
 .timer-memorial .time-value {
-  background: var(--gradient-sunset);
+  background: var(--gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-size: 1.6rem;
   font-weight: 700;
+  animation: moon-glow 2s ease-in-out infinite;
 }
 
-/* 🏝️ 背景装饰 */
+/* ✨ 背景装饰 */
 .bg-decoration {
   position: fixed;
   top: 0;
@@ -342,28 +370,52 @@ body {
   height: 100%;
   z-index: -1;
   overflow: hidden;
+  background: var(--gradient-soul);
 }
 
 .bg-decoration::before {
   content: '';
   position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255, 107, 107, 0.15) 0%, transparent 70%);
+  top: 15%;
+  left: 20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, 
+    rgba(255, 215, 0, 0.08) 0%, 
+    rgba(0, 188, 212, 0.05) 40%,
+    transparent 70%);
   border-radius: 50%;
-  animation: float 6s ease-in-out infinite;
+  animation: mist-float 8s ease-in-out infinite;
 }
 
 .bg-decoration::after {
   content: '';
   position: absolute;
-  bottom: 20%;
-  right: 15%;
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(78, 205, 196, 0.15) 0%, transparent 70%);
+  bottom: 25%;
+  right: 20%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, 
+    rgba(74, 25, 66, 0.15) 0%, 
+    rgba(255, 215, 0, 0.05) 40%,
+    transparent 70%);
   border-radius: 50%;
-  animation: float 8s ease-in-out infinite 1s;
+  animation: mist-float 10s ease-in-out infinite 2s;
 }
+
+/* 🌟 浮动星光装饰 */
+.bg-decoration .star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 215, 0, 0.6);
+  border-radius: 50%;
+  animation: star-twinkle 3s ease-in-out infinite;
+}
+
+.bg-decoration .star:nth-child(1) { top: 20%; left: 30%; animation-delay: 0s; }
+.bg-decoration .star:nth-child(2) { top: 35%; left: 70%; animation-delay: 0.5s; }
+.bg-decoration .star:nth-child(3) { top: 55%; left: 25%; animation-delay: 1s; }
+.bg-decoration .star:nth-child(4) { top: 70%; left: 80%; animation-delay: 1.5s; }
+.bg-decoration .star:nth-child(5) { top: 15%; left: 85%; animation-delay: 2s; }
+.bg-decoration .star:nth-child(6) { top: 45%; left: 50%; animation-delay: 2.5s; }

@@ -17,6 +17,94 @@ const STONE = { EMPTY: 0, BLACK: 1, WHITE: 2, RED: 3 };
 const BOARD_SIZE = 19;
 
 // ============================================================
+// Background Music Service
+// ============================================================
+const bgMusicService = {
+  audio: null,
+  playing: false,
+  volume: 0.4,  // 默认音量 40%
+  loaded: false,
+
+  async init() {
+    if (this.loaded) return;
+    
+    try {
+      // Determine the correct path - assets folder for renderer
+      const audioPath = './assets/天涯归魂.mp3';
+      this.audio = new Audio(audioPath);
+      this.audio.loop = true;
+      this.audio.volume = this.volume;
+      
+      // Wait for metadata to ensure loading succeeded
+      await new Promise((resolve, reject) => {
+        this.audio.addEventListener('loadedmetadata', resolve, { once: true });
+        this.audio.addEventListener('error', (e) => reject(e), { once: true });
+        // Set a timeout in case metadata never loads
+        setTimeout(() => resolve(), 2000);
+      });
+      
+      this.loaded = true;
+      console.log('Background music loaded successfully');
+    } catch (error) {
+      console.warn('Failed to load background music:', error);
+      this.loaded = false;
+    }
+  },
+
+  async play() {
+    if (!this.loaded) {
+      await this.init();
+    }
+    
+    if (this.audio && this.loaded) {
+      try {
+        await this.audio.play();
+        this.playing = true;
+        console.log('Background music started');
+        this.updateUI();
+      } catch (error) {
+        console.warn('Failed to play background music:', error);
+      }
+    }
+  },
+
+  pause() {
+    if (this.audio) {
+      this.audio.pause();
+      this.playing = false;
+      this.updateUI();
+    }
+  },
+
+  toggle() {
+    if (this.playing) {
+      this.pause();
+    } else {
+      this.play();
+    }
+    return this.playing;
+  },
+
+  setVolume(volume) {
+    this.volume = volume;
+    if (this.audio) {
+      this.audio.volume = volume;
+    }
+  },
+
+  updateUI() {
+    const btn = document.getElementById('btn-music-toggle');
+    if (btn) {
+      btn.classList.toggle('playing', this.playing);
+      const icon = btn.querySelector('.music-icon');
+      if (icon) {
+        icon.textContent = this.playing ? '🎵' : '🔇';
+      }
+    }
+  }
+};
+
+// ============================================================
 // Audio Service (inline for renderer context)
 // ============================================================
 const audioService = {
@@ -843,13 +931,13 @@ async function setupWebRTCConnection(isHost) {
   state.webRTCClient.onConnectionStateChange((connectionState) => {
     console.log('WebRTC connection state:', connectionState);
     if (connectionState === 'connected') {
-      updateStatus('🌐 P2P 连接已建立');
+      updateStatus('🌐 联机连接已建立');
     } else if (connectionState === 'disconnected') {
-      updateStatus('⚠️ P2P 连接断开');
+      updateStatus('⚠️ 联机连接断开');
     } else if (connectionState === 'failed') {
-      updateStatus('❌ P2P 连接失败');
+      updateStatus('❌ 联机连接失败');
     } else if (connectionState === 'checking') {
-      updateStatus('🔄 正在建立 P2P 连接...');
+      updateStatus('🔄 正在建立联机连接...');
     }
   });
 
@@ -1289,11 +1377,33 @@ async function connectToRoom(room) {
 }
 
 // ============================================================
+// Background Music Event Listeners
+// ============================================================
+function setupBackgroundMusicListeners() {
+  // Music toggle button
+  const musicToggleBtn = document.getElementById('btn-music-toggle');
+  if (musicToggleBtn) {
+    musicToggleBtn.addEventListener('click', async () => {
+      await bgMusicService.init();
+      bgMusicService.toggle();
+    });
+  }
+
+  // Music volume slider
+  const volumeSlider = document.getElementById('music-volume');
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', (e) => {
+      const volume = e.target.value / 100;
+      bgMusicService.setVolume(volume);
+    });
+  }
+}
+
+// ============================================================
 // Event Listeners Setup
 // ============================================================
 function setupEventListeners() {
   // Home screen buttons
-  document.getElementById('btn-host').addEventListener('click', () => showScreen('host'));
   document.getElementById('btn-join').addEventListener('click', () => showScreen('join'));
   document.getElementById('btn-ai').addEventListener('click', () => showScreen('ai'));
   document.getElementById('btn-webrtc').addEventListener('click', () => showScreen('webrtc'));
@@ -1504,20 +1614,20 @@ function setupEventListeners() {
   window.gameAPI.onWebRTCConnectionState((state) => {
     console.log('WebRTC connection state:', state);
     if (state === 'connected') {
-      updateStatus('🌐 P2P 连接已建立');
+      updateStatus('🌐 联机连接已建立');
     } else if (state === 'disconnected') {
-      updateStatus('⚠️ P2P 连接断开');
+      updateStatus('⚠️ 联机连接断开');
     } else if (state === 'failed') {
-      updateStatus('❌ P2P 连接失败');
+      updateStatus('❌ 联机连接失败');
     } else if (state === 'checking') {
-      updateStatus('🔄 正在建立 P2P 连接...');
+      updateStatus('🔄 正在建立联机连接...');
     }
   });
 
   // WebRTC error
   window.gameAPI.onWebRTCError((error) => {
     console.error('WebRTC error:', error);
-    updateStatus(`❌ WebRTC 错误: ${error}`);
+    updateStatus(`❌ 联机连接错误: ${error}`);
   });
 
   // WebRTC signal listener
@@ -1616,5 +1726,13 @@ window.addEventListener('error', (event) => {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
+  setupBackgroundMusicListeners();
   showScreen('home');
+  
+  // 自动播放背景音乐
+  bgMusicService.init().then(() => {
+    bgMusicService.play();
+  }).catch(err => {
+    console.warn('自动播放背景音乐失败:', err);
+  });
 });
