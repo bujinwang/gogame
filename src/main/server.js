@@ -276,9 +276,13 @@ class GameServer {
   connectLocal(playerName) {
     const virtualWs = {
       readyState: WebSocket.OPEN,
+      _messageQueue: [],
       send: (data) => {
         if (virtualWs._onMessage) {
           virtualWs._onMessage(data);
+        } else {
+          // Buffer messages until onMessage callback is registered
+          virtualWs._messageQueue.push(data);
         }
       },
       _onMessage: null,
@@ -296,6 +300,10 @@ class GameServer {
       },
       onMessage: (callback) => {
         virtualWs._onMessage = callback;
+        // Flush any buffered messages that were sent before the callback was registered
+        while (virtualWs._messageQueue.length > 0) {
+          callback(virtualWs._messageQueue.shift());
+        }
       },
       close: () => {
         this.clients.delete(virtualWs);
