@@ -430,12 +430,14 @@ function cleanup() {
     gameServer = null;
   }
   aiPlayer = null;
-  // Stop any active LAN discovery
-  lanDiscovery.destroy();
+  // Stop any active LAN discovery (but don't destroy - it can be reused)
+  lanDiscovery.stopBroadcast();
+  lanDiscovery.stopScan();
 }
 
 function cleanupIpc() {
   cleanup();
+  lanDiscovery.destroy();
 }
 
 module.exports = { setupIpcHandlers, cleanupIpc };

@@ -1583,8 +1583,11 @@ function resetGameState() {
   document.getElementById('btn-webrtc-host-start').disabled = false;
   document.getElementById('btn-webrtc-host-start').textContent = '开始等待';
   document.getElementById('btn-webrtc-join-connect').disabled = false;
-  document.getElementById('btn-webrtc-join-connect').textContent = '连接';
+  document.getElementById('btn-webrtc-join-connect').textContent = '手动连接';
   document.getElementById('webrtc-join-status').style.display = 'none';
+  document.getElementById('webrtc-manual-input').style.display = 'none';
+  document.getElementById('btn-webrtc-manual-toggle').textContent = '手动输入地址 ▼';
+  discoveredRooms.clear();
   document.getElementById('move-history').innerHTML = '';
   document.getElementById('black-captures').textContent = '提子: 0';
   document.getElementById('white-captures').textContent = '提子: 0';
