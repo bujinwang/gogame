@@ -13,8 +13,16 @@ contextBridge.exposeInMainWorld('gameAPI', {
   hostWebRTCGame: (settings) => ipcRenderer.invoke('host-webrtc-game', settings),
   joinWebRTCGame: (settings) => ipcRenderer.invoke('join-webrtc-game', settings),
   
+  // WebRTC signaling
+  sendWebRTCSignal: (signal) => ipcRenderer.invoke('send-webrtc-signal', signal),
+  
   // Game actions - AI
   startAIGame: (settings) => ipcRenderer.invoke('start-ai-game', settings),
+  
+  // LAN Room Discovery
+  startRoomScan: () => ipcRenderer.invoke('start-room-scan'),
+  stopRoomScan: () => ipcRenderer.invoke('stop-room-scan'),
+  stopRoomBroadcast: () => ipcRenderer.invoke('stop-room-broadcast'),
   
   // In-game actions
   submitMove: (move) => ipcRenderer.invoke('submit-move', move),
@@ -33,11 +41,30 @@ contextBridge.exposeInMainWorld('gameAPI', {
   onConnectionLost: (callback) => {
     ipcRenderer.on('connection-lost', () => callback());
   },
+  onWebRTCConnectionState: (callback) => {
+    ipcRenderer.on('webrtc-connection-state', (event, state) => callback(state));
+  },
+  onWebRTCError: (callback) => {
+    ipcRenderer.on('webrtc-error', (event, error) => callback(error));
+  },
+  onWebRTCSignal: (callback) => {
+    ipcRenderer.on('webrtc-signal', (event, signal) => callback(signal));
+  },
+  onRoomFound: (callback) => {
+    ipcRenderer.on('room-found', (event, room) => callback(room));
+  },
+  onRoomLost: (callback) => {
+    ipcRenderer.on('room-lost', (event, roomKey) => callback(roomKey));
+  },
 
   // Remove listeners
   removeAllListeners: () => {
     ipcRenderer.removeAllListeners('game-message');
     ipcRenderer.removeAllListeners('server-log');
     ipcRenderer.removeAllListeners('connection-lost');
+    ipcRenderer.removeAllListeners('webrtc-connection-state');
+    ipcRenderer.removeAllListeners('webrtc-error');
+    ipcRenderer.removeAllListeners('room-found');
+    ipcRenderer.removeAllListeners('room-lost');
   }
 });

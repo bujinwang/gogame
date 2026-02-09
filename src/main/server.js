@@ -104,6 +104,12 @@ class GameServer {
    * Handle incoming message from a client
    */
   _handleMessage(ws, msg) {
+    // Handle WebRTC signaling messages - relay to other peer
+    if (['offer', 'answer', 'ice-candidate'].includes(msg.type)) {
+      this._relayWebRTCMessage(ws, msg);
+      return;
+    }
+
     switch (msg.type) {
       case MSG.JOIN:
         this._handleJoin(ws, msg);
@@ -119,6 +125,18 @@ class GameServer {
         break;
       default:
         ws.send(createMessage(MSG.ERROR, { error: `Unknown message type: ${msg.type}` }));
+    }
+  }
+
+  /**
+   * Relay WebRTC signaling message to the other peer
+   */
+  _relayWebRTCMessage(senderWs, msg) {
+    for (const [ws] of this.clients) {
+      if (ws !== senderWs && ws.readyState === WebSocket.OPEN) {
+        // Send as raw JSON for WebRTC signaling
+        ws.send(JSON.stringify(msg));
+      }
     }
   }
 

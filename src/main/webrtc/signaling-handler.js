@@ -84,7 +84,13 @@ class SignalingHandler {
    */
   send(message) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(createMessage(message.type, message));
+      // For WebRTC signaling messages, send as JSON directly
+      if (['offer', 'answer', 'ice-candidate'].includes(message.type)) {
+        this.ws.send(JSON.stringify(message));
+      } else {
+        // For game messages, use the protocol format
+        this.ws.send(createMessage(message.type, message));
+      }
     } else {
       console.warn('Signaling channel not open, cannot send message');
     }

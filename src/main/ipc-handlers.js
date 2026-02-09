@@ -6,7 +6,7 @@ const { ipcMain } = require('electron');
 const GameServer = require('./server');
 const AIPlayer = require('./ai/ai-player');
 const GameEngine = require('./game/game-engine');
-const { WebRTCManager, SignalingHandler } = require('./webrtc');
+const LANDiscovery = require('./discovery');
 const { MSG, createMessage, parseMessage } = require('../shared/protocol');
 const { GAME_MODE, STONE } = require('../shared/constants');
 
@@ -14,10 +14,12 @@ let gameServer = null;
 let localClient = null;
 let aiPlayer = null;
 let aiEngine = null;
-let webRTCManager = null;
-let signalingHandler = null;
+let mainWindow = null;
+let lanDiscovery = new LANDiscovery();
 
-function setupIpcHandlers(mainWindow) {
+function setupIpcHandlers(mainWindowParam) {
+  mainWindow = mainWindowParam;
+
   /**
    * Host a game (WebSocket LAN) - start server and wait for opponent
    */
@@ -114,13 +116,14 @@ function setupIpcHandlers(mainWindow) {
 
   /**
    * Host a WebRTC game - start signaling server and wait for peer connection
+   * The actual WebRTC connection is handled in the renderer process
    */
   ipcMain.handle('host-webrtc-game', async (event, settings) => {
     try {
       // Stop any existing game server
       cleanup();
 
-      // Create a local game server
+      // Create a local game server (acts as signaling server)
       gameServer = new GameServer({ port: settings.port || 38765 });
       gameServer.onLog((msg) => {
         mainWindow.webContents.send('server-log', msg);
@@ -136,6 +139,18 @@ function setupIpcHandlers(mainWindow) {
         mainWindow.webContents.send('game-message', data);
       });
 
+      // Set up WebRTC signaling relay
+      gameServer.onWebRTCSignal = (signal) => {
+        mainWindow.webContents.send('webrtc-signal', signal);
+      };
+
+      // Start LAN broadcast so joiners can discover this room
+      lanDiscovery.startBroadcast({
+        hostName: settings.playerName || 'Host',
+        port: settings.port || 38765,
+        baseTime: settings.baseTime
+      });
+
       return { success: true, ...serverInfo };
     } catch (err) {
       return { success: false, error: err.message };
@@ -143,13 +158,15 @@ function setupIpcHandlers(mainWindow) {
   });
 
   /**
-   * Join a WebRTC game - connect to remote signaling server and establish peer connection
+   * Join a WebRTC game - connect to remote signaling server
+   * The actual WebRTC connection is handled in the renderer process
    */
   ipcMain.handle('join-webrtc-game', async (event, settings) => {
     try {
       // Stop any existing connections
       cleanup();
 
+      // Connect to signaling server via WebSocket
       const WebSocket = require('ws');
       const ws = new WebSocket(`ws://${settings.host}:${settings.port || 38765}`);
 
@@ -162,9 +179,28 @@ function setupIpcHandlers(mainWindow) {
         ws.on('open', () => {
           clearTimeout(timeout);
 
-          // Set up message forwarding
+          // Handle incoming WebSocket messages
           ws.on('message', (data) => {
-            mainWindow.webContents.send('game-message', data.toString());
+            const dataStr = data.toString();
+            
+            try {
+              // Try to parse as JSON first (WebRTC signaling)
+              const jsonMsg = JSON.parse(dataStr);
+              
+              if (['offer', 'answer', 'ice-candidate'].includes(jsonMsg.type)) {
+                // Forward WebRTC signaling to renderer
+                mainWindow.webContents.send('webrtc-signal', jsonMsg);
+              } else {
+                // Game message - forward to renderer
+                mainWindow.webContents.send('game-message', dataStr);
+              }
+            } catch (e) {
+              // Not JSON, try protocol parsing
+              const msg = parseMessage(dataStr);
+              if (msg.type !== MSG.ERROR) {
+                mainWindow.webContents.send('game-message', dataStr);
+              }
+            }
           });
 
           ws.on('close', () => {
@@ -203,6 +239,23 @@ function setupIpcHandlers(mainWindow) {
           resolve({ success: false, error: err.message });
         });
       });
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  /**
+   * Send WebRTC signaling message to peer
+   */
+  ipcMain.handle('send-webrtc-signal', async (event, signal) => {
+    if (!localClient) {
+      return { success: false, error: 'Not connected' };
+    }
+
+    try {
+      // Send signaling message through WebSocket
+      localClient.send(JSON.stringify(signal));
+      return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -329,6 +382,39 @@ function setupIpcHandlers(mainWindow) {
     }
     return ips;
   });
+
+  /**
+   * Start scanning for P2P rooms on LAN
+   */
+  ipcMain.handle('start-room-scan', async () => {
+    lanDiscovery.startScan(
+      (room) => {
+        // Room discovered
+        mainWindow.webContents.send('room-found', room);
+      },
+      (roomKey) => {
+        // Room lost
+        mainWindow.webContents.send('room-lost', roomKey);
+      }
+    );
+    return { success: true };
+  });
+
+  /**
+   * Stop scanning for rooms
+   */
+  ipcMain.handle('stop-room-scan', async () => {
+    lanDiscovery.stopScan();
+    return { success: true };
+  });
+
+  /**
+   * Stop broadcasting room
+   */
+  ipcMain.handle('stop-room-broadcast', async () => {
+    lanDiscovery.stopBroadcast();
+    return { success: true };
+  });
 }
 
 /**
@@ -343,15 +429,9 @@ function cleanup() {
     gameServer.stop();
     gameServer = null;
   }
-  if (webRTCManager) {
-    webRTCManager.close();
-    webRTCManager = null;
-  }
-  if (signalingHandler) {
-    signalingHandler.close();
-    signalingHandler = null;
-  }
   aiPlayer = null;
+  // Stop any active LAN discovery
+  lanDiscovery.destroy();
 }
 
 function cleanupIpc() {

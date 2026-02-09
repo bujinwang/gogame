@@ -503,6 +503,8 @@ gogame/
 ### 13.1 Overview
 The application supports an optional WebRTC P2P mode alongside the primary WebSocket (LAN) mode. WebRTC allows direct player-to-player communication without routing all traffic through the host's game server, providing potentially lower latency for game moves.
 
+The goal is to enable direct player-to-player communication without requiring a central server for game state synchronization, while maintaining compatibility with the existing WebSocket-based architecture.
+
 ### 13.2 Architecture
 
 ```mermaid
@@ -546,6 +548,44 @@ src/main/webrtc/
 
 ### 13.5 Signaling Flow
 
+```mermaid
+sequenceDiagram
+    participant A as Player A
+    participant S as Signaling Server
+    participant B as Player B
+
+    A->>S: Create game session
+    B->>S: Join game session
+    S->>A: Notify of player B joining
+    S->>B: Send player A info
+    
+    Note over A,B: WebRTC Connection Establishment
+    A->>A: Create RTCPeerConnection
+    A->>A: Create offer
+    A->>S: Send offer via signaling
+    S->>B: Forward offer
+    B->>B: Create RTCPeerConnection
+    B->>B: Set remote description
+    B->>B: Create answer
+    B->>S: Send answer via signaling
+    S->>A: Forward answer
+    A->>A: Set remote description
+    
+    Note over A,B: ICE Candidate Exchange
+    loop ICE Candidates
+        A->>S: Send ICE candidate
+        S->>B: Forward ICE candidate
+        B->>S: Send ICE candidate
+        S->>A: Forward ICE candidate
+    end
+    
+    Note over A,B: Data Channel Setup
+    A->>A: Create data channel
+    B->>B: Listen for data channel
+    A->>B: Send game start message
+    B->>A: Acknowledge game start
+```
+
 1. Host starts a WebSocket signaling server (reuses game server)
 2. Client connects to signaling server via WebSocket
 3. SDP offer/answer and ICE candidates are exchanged through signaling
@@ -563,8 +603,31 @@ Additional message types for WebRTC signaling (in `src/shared/protocol.js`):
 | `webrtc_ice_candidate` | ICE candidate exchange |
 | `webrtc_connected` | Confirmation of P2P connection |
 
-### 13.7 Fallback Strategy
+### 13.7 Message Routing
+
+- Implement a message router in both main and renderer processes
+- Route messages through WebRTC when available, fallback to WebSocket
+- Maintain message format compatibility between both transport methods
+
+### 13.8 Fallback Strategy
 
 - If WebRTC connection fails, the system automatically falls back to WebSocket
 - The transport layer is abstracted so game logic is unaware of the underlying transport
 - Both transports use the same message protocol format
+
+### 13.9 Technical Considerations
+
+#### NAT Traversal
+- Use STUN servers for basic NAT traversal
+- Consider TURN servers for complex network topologies
+- Implement ICE candidate gathering and exchange
+
+#### Security
+- Validate all messages received via WebRTC
+- Implement proper authentication for signaling
+- Ensure game state integrity with message sequencing
+
+#### Performance
+- Monitor data channel buffer status
+- Implement message prioritization for critical game events
+- Handle connection quality degradation gracefully

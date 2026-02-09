@@ -211,6 +211,130 @@
   color: var(--success);
 }
 
+/* Room List (LAN Discovery) */
+.room-list-container {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.room-list {
+  min-height: 80px;
+}
+
+.room-list-scanning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.room-list-scanning .spinner {
+  margin-bottom: 8px;
+}
+
+.room-list-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.room-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.room-item:last-child {
+  border-bottom: none;
+}
+
+.room-item:hover {
+  background: rgba(100, 255, 218, 0.08);
+}
+
+.room-item.connecting {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.room-item-icon {
+  font-size: 1.4rem;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.room-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-item-detail {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.room-item-join {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 1px solid var(--text-accent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.room-item-join:hover {
+  background: var(--text-accent);
+  color: var(--bg-primary);
+}
+
+.manual-toggle-link {
+  display: inline-block;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.manual-toggle-link:hover {
+  color: var(--text-accent);
+}
+
+.room-manual-toggle {
+  margin-bottom: 10px;
+}
+
+.manual-input-section {
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
 /* Game Screen Layout */
 .game-layout {
   display: flex;

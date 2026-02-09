@@ -284,18 +284,30 @@ const state = {
   lastBlackMove: null,
   lastWhiteMove: null,
   moveHistory: [],
-  lastByoYomiWarning: 0  // Track last warning to prevent spam
+  lastByoYomiWarning: 0,  // Track last warning to prevent spam
+  useWebRTC: false,      // Whether using WebRTC for P2P
+  webRTCClient: null     // WebRTC client instance
 };
 
 // ============================================================
 // Screen Management
 // ============================================================
 function showScreen(screenId) {
+  // Stop room scanning when leaving webrtc-join screen
+  if (state.currentScreen === 'webrtc-join' && screenId !== 'webrtc-join') {
+    window.gameAPI.stopRoomScan();
+  }
+  
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const screen = document.getElementById(`screen-${screenId}`);
   if (screen) {
     screen.classList.add('active');
     state.currentScreen = screenId;
+  }
+  
+  // Start room scanning when entering webrtc-join screen
+  if (screenId === 'webrtc-join') {
+    startRoomScan();
   }
 }
 
@@ -815,6 +827,73 @@ function handleGameEnd(msg) {
 }
 
 // ============================================================
+// WebRTC Integration
+// ============================================================
+async function setupWebRTCConnection(isHost) {
+  state.useWebRTC = true;
+  state.webRTCClient = new WebRTCClient();
+
+  // Set up WebRTC message handler
+  state.webRTCClient.onMessage((message) => {
+    // Forward game messages from WebRTC to the game message handler
+    handleGameMessage(JSON.stringify(message));
+  });
+
+  state.webRTCClient.onConnectionStateChange((connectionState) => {
+    console.log('WebRTC connection state:', connectionState);
+    if (connectionState === 'connected') {
+      updateStatus('🌐 P2P 连接已建立');
+    } else if (connectionState === 'disconnected') {
+      updateStatus('⚠️ P2P 连接断开');
+    } else if (connectionState === 'failed') {
+      updateStatus('❌ P2P 连接失败');
+    } else if (connectionState === 'checking') {
+      updateStatus('🔄 正在建立 P2P 连接...');
+    }
+  });
+
+  // Set up ICE candidate handler
+  state.webRTCClient.onIceCandidate(async (candidate) => {
+    await window.gameAPI.sendWebRTCSignal({
+      type: 'ice-candidate',
+      candidate: candidate
+    });
+  });
+
+  if (isHost) {
+    // Host creates the offer
+    const offer = await state.webRTCClient.createPeerConnection();
+    await window.gameAPI.sendWebRTCSignal({
+      type: 'offer',
+      offer: offer
+    });
+  }
+}
+
+async function handleWebRTCSignal(signal) {
+  if (!state.webRTCClient) return;
+
+  switch (signal.type) {
+    case 'offer':
+      // Joiner receives offer and creates answer
+      const answer = await state.webRTCClient.handleOffer(signal.offer);
+      await window.gameAPI.sendWebRTCSignal({
+        type: 'answer',
+        answer: answer
+      });
+      break;
+    case 'answer':
+      // Host receives answer
+      await state.webRTCClient.handleAnswer(signal.answer);
+      break;
+    case 'ice-candidate':
+      // Both handle ICE candidates
+      await state.webRTCClient.handleIceCandidate(signal.candidate);
+      break;
+  }
+}
+
+// ============================================================
 // Game Actions
 // ============================================================
 async function submitMove(x, y) {
@@ -823,13 +902,23 @@ async function submitMove(x, y) {
   state.moveSubmitted = true;
   document.getElementById('btn-pass').disabled = true;
   
-  const result = await window.gameAPI.submitMove({ x, y, pass: false });
-  if (!result.success) {
-    state.moveSubmitted = false;
-    document.getElementById('btn-pass').disabled = false;
-    console.error('Move rejected:', result.error);
-    audioService.playError();
-    updateStatus(`落子失败: ${result.error}`);
+  // If using WebRTC, send through data channel
+  if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
+    state.webRTCClient.sendMessage({
+      type: 'submit_move',
+      x: x,
+      y: y,
+      pass: false
+    });
+  } else {
+    const result = await window.gameAPI.submitMove({ x, y, pass: false });
+    if (!result.success) {
+      state.moveSubmitted = false;
+      document.getElementById('btn-pass').disabled = false;
+      console.error('Move rejected:', result.error);
+      audioService.playError();
+      updateStatus(`落子失败: ${result.error}`);
+    }
   }
 }
 
@@ -839,15 +928,26 @@ async function submitPass() {
   state.moveSubmitted = true;
   document.getElementById('btn-pass').disabled = true;
   
-  const result = await window.gameAPI.submitMove({ pass: true });
-  if (!result.success) {
-    state.moveSubmitted = false;
-    document.getElementById('btn-pass').disabled = false;
-    updateStatus(`虚手失败: ${result.error}`);
-  } else {
+  // If using WebRTC, send through data channel
+  if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
+    state.webRTCClient.sendMessage({
+      type: 'submit_move',
+      pass: true
+    });
     updateStatus('已虚手，等待对手...');
     const canvas = document.getElementById('game-board');
     canvas.classList.add('waiting');
+  } else {
+    const result = await window.gameAPI.submitMove({ pass: true });
+    if (!result.success) {
+      state.moveSubmitted = false;
+      document.getElementById('btn-pass').disabled = false;
+      updateStatus(`虚手失败: ${result.error}`);
+    } else {
+      updateStatus('已虚手，等待对手...');
+      const canvas = document.getElementById('game-board');
+      canvas.classList.add('waiting');
+    }
   }
 }
 
@@ -855,7 +955,12 @@ async function resignGame() {
   if (!state.gameActive) return;
   
   if (confirm('确定要认输吗？')) {
-    await window.gameAPI.resign();
+    // If using WebRTC, send through data channel
+    if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
+      state.webRTCClient.sendMessage({ type: 'resign' });
+    } else {
+      await window.gameAPI.resign();
+    }
   }
 }
 
@@ -1057,6 +1162,132 @@ function showResultScreen(result) {
 }
 
 // ============================================================
+// LAN Room Discovery
+// ============================================================
+const discoveredRooms = new Map();
+
+function startRoomScan() {
+  discoveredRooms.clear();
+  const roomList = document.getElementById('room-list');
+  roomList.innerHTML = `
+    <div class="room-list-scanning">
+      <div class="spinner"></div>
+      <p>正在搜索局域网房间...</p>
+    </div>
+  `;
+  window.gameAPI.startRoomScan();
+}
+
+function formatBaseTime(ms) {
+  if (!ms) return '';
+  const minutes = Math.floor(ms / 60000);
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const remainMins = minutes % 60;
+    return remainMins > 0 ? `${hours}小时${remainMins}分` : `${hours}小时`;
+  }
+  return `${minutes}分钟`;
+}
+
+function addRoomToList(room) {
+  discoveredRooms.set(room.key, room);
+  renderRoomList();
+}
+
+function removeRoomFromList(roomKey) {
+  discoveredRooms.delete(roomKey);
+  renderRoomList();
+}
+
+function renderRoomList() {
+  const roomList = document.getElementById('room-list');
+  
+  if (discoveredRooms.size === 0) {
+    roomList.innerHTML = `
+      <div class="room-list-scanning">
+        <div class="spinner"></div>
+        <p>正在搜索局域网房间...</p>
+      </div>
+    `;
+    return;
+  }
+  
+  roomList.innerHTML = '';
+  for (const [key, room] of discoveredRooms) {
+    const item = document.createElement('div');
+    item.className = 'room-item';
+    item.dataset.roomKey = key;
+    
+    const timeStr = formatBaseTime(room.baseTime);
+    
+    item.innerHTML = `
+      <span class="room-item-icon">🏠</span>
+      <div class="room-item-info">
+        <div class="room-item-name">${escapeHtml(room.hostName)} 的房间</div>
+        <div class="room-item-detail">${room.host}:${room.port}${timeStr ? ' · ' + timeStr : ''}</div>
+      </div>
+      <button class="room-item-join">加入</button>
+    `;
+    
+    const joinBtn = item.querySelector('.room-item-join');
+    joinBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      connectToRoom(room);
+    });
+    item.addEventListener('click', () => {
+      connectToRoom(room);
+    });
+    
+    roomList.appendChild(item);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+async function connectToRoom(room) {
+  const name = document.getElementById('webrtc-join-name').value || '白方';
+  
+  // Mark the room item as connecting
+  const roomItems = document.querySelectorAll('.room-item');
+  roomItems.forEach(item => {
+    if (item.dataset.roomKey === room.key) {
+      item.classList.add('connecting');
+      const btn = item.querySelector('.room-item-join');
+      if (btn) btn.textContent = '连接中...';
+    }
+  });
+  
+  showWebRTCJoinStatus('正在连接...', 'success');
+  
+  // Stop scanning since we're connecting
+  await window.gameAPI.stopRoomScan();
+  
+  const result = await window.gameAPI.joinWebRTCGame({
+    playerName: name,
+    host: room.host,
+    port: room.port
+  });
+  
+  if (result.success) {
+    showWebRTCJoinStatus('连接成功！等待游戏开始...', 'success');
+    await setupWebRTCConnection(false);
+  } else {
+    showWebRTCJoinStatus('连接失败: ' + result.error, 'error');
+    // Reset UI and restart scanning
+    roomItems.forEach(item => {
+      item.classList.remove('connecting');
+      const btn = item.querySelector('.room-item-join');
+      if (btn) btn.textContent = '加入';
+    });
+    startRoomScan();
+  }
+}
+
+// ============================================================
 // Event Listeners Setup
 // ============================================================
 function setupEventListeners() {
@@ -1126,9 +1357,12 @@ function setupEventListeners() {
     
     if (result.success) {
       document.getElementById('webrtc-host-waiting').style.display = 'block';
-      document.getElementById('webrtc-host-ip-info').textContent = 
+      document.getElementById('webrtc-host-ip-info').textContent =
         `地址: ${result.address}:${result.port}`;
       btn.textContent = '等待中...';
+      
+      // Set up WebRTC connection as host
+      await setupWebRTCConnection(true);
     } else {
       btn.disabled = false;
       btn.textContent = '开始等待';
@@ -1166,7 +1400,21 @@ function setupEventListeners() {
     }
   });
   
-  // Join WebRTC game
+  // Manual input toggle for WebRTC join
+  document.getElementById('btn-webrtc-manual-toggle').addEventListener('click', (e) => {
+    e.preventDefault();
+    const section = document.getElementById('webrtc-manual-input');
+    const link = document.getElementById('btn-webrtc-manual-toggle');
+    if (section.style.display === 'none') {
+      section.style.display = 'block';
+      link.textContent = '手动输入地址 ▲';
+    } else {
+      section.style.display = 'none';
+      link.textContent = '手动输入地址 ▼';
+    }
+  });
+  
+  // Join WebRTC game (manual input)
   document.getElementById('btn-webrtc-join-connect').addEventListener('click', async () => {
     const name = document.getElementById('webrtc-join-name').value || '白方';
     const host = document.getElementById('webrtc-join-host').value;
@@ -1181,6 +1429,9 @@ function setupEventListeners() {
     btn.disabled = true;
     btn.textContent = '连接中...';
     
+    // Stop scanning
+    await window.gameAPI.stopRoomScan();
+    
     const result = await window.gameAPI.joinWebRTCGame({
       playerName: name,
       host: host,
@@ -1189,10 +1440,15 @@ function setupEventListeners() {
     
     if (result.success) {
       showWebRTCJoinStatus('连接成功！等待游戏开始...', 'success');
+      
+      // Set up WebRTC connection as joiner
+      await setupWebRTCConnection(false);
     } else {
       btn.disabled = false;
-      btn.textContent = '连接';
+      btn.textContent = '手动连接';
       showWebRTCJoinStatus('连接失败: ' + result.error, 'error');
+      // Restart scanning
+      startRoomScan();
     }
   });
   
@@ -1234,13 +1490,47 @@ function setupEventListeners() {
   
   // Game message listener
   window.gameAPI.onGameMessage(handleGameMessage);
-  
+
   // Connection lost
   window.gameAPI.onConnectionLost(() => {
     if (state.gameActive) {
       updateStatus('⚠️ 连接断开');
       state.gameActive = false;
     }
+  });
+
+  // WebRTC connection state
+  window.gameAPI.onWebRTCConnectionState((state) => {
+    console.log('WebRTC connection state:', state);
+    if (state === 'connected') {
+      updateStatus('🌐 P2P 连接已建立');
+    } else if (state === 'disconnected') {
+      updateStatus('⚠️ P2P 连接断开');
+    } else if (state === 'failed') {
+      updateStatus('❌ P2P 连接失败');
+    } else if (state === 'checking') {
+      updateStatus('🔄 正在建立 P2P 连接...');
+    }
+  });
+
+  // WebRTC error
+  window.gameAPI.onWebRTCError((error) => {
+    console.error('WebRTC error:', error);
+    updateStatus(`❌ WebRTC 错误: ${error}`);
+  });
+
+  // WebRTC signal listener
+  window.gameAPI.onWebRTCSignal((signal) => {
+    handleWebRTCSignal(signal);
+  });
+
+  // LAN Room Discovery listeners
+  window.gameAPI.onRoomFound((room) => {
+    addRoomToList(room);
+  });
+
+  window.gameAPI.onRoomLost((roomKey) => {
+    removeRoomFromList(roomKey);
   });
 }
 
@@ -1274,6 +1564,13 @@ function resetGameState() {
   state.lastWhiteMove = null;
   state.moveHistory = [];
   boardRenderer = null;
+  
+  // Clean up WebRTC
+  if (state.webRTCClient) {
+    state.webRTCClient.close();
+    state.webRTCClient = null;
+  }
+  state.useWebRTC = false;
   
   // Reset UI elements
   document.getElementById('host-waiting').style.display = 'none';

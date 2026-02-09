@@ -1,15 +1,12 @@
 /**
- * WebRTC Manager - Handles peer-to-peer connections for direct player communication
- * Uses wrtc package for Node.js WebRTC support
+ * WebRTC Client - Handles peer-to-peer connections in the renderer process
+ * Uses browser WebRTC APIs
  */
 
-const { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } = require('wrtc');
-
-class WebRTCManager {
+class WebRTCClient {
   constructor() {
     this.peerConnection = null;
     this.dataChannel = null;
-    this.signalingChannel = null;
     this.onMessageCallback = null;
     this.onConnectionStateChangeCallback = null;
     this.isHost = false;
@@ -24,21 +21,8 @@ class WebRTCManager {
   }
 
   /**
-   * Initialize the WebRTC manager with a signaling channel
-   * @param {object} signalingChannel - Channel for exchanging signaling messages
-   */
-  init(signalingChannel) {
-    this.signalingChannel = signalingChannel;
-    
-    // Listen for signaling messages
-    this.signalingChannel.onMessage((message) => {
-      this._handleSignalingMessage(message);
-    });
-  }
-
-  /**
    * Create a new peer connection (for the offerer/host)
-   * @returns {Promise<void>}
+   * @returns {Promise<object>} - The offer SDP
    */
   async createPeerConnection() {
     this.isHost = true;
@@ -55,30 +39,17 @@ class WebRTCManager {
 
     this._setupDataChannelEvents();
 
-    // Start ICE candidate gathering
-    this.peerConnection.onicecandidate = ({ candidate }) => {
-      if (candidate) {
-        this.signalingChannel.send({
-          type: 'ice-candidate',
-          candidate: candidate
-        });
-      }
-    };
-
     // Create offer
     const offer = await this.peerConnection.createOffer();
-    await this.peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+    await this.peerConnection.setLocalDescription(offer);
 
-    // Send offer through signaling channel
-    this.signalingChannel.send({
-      type: 'offer',
-      offer: offer
-    });
+    return offer;
   }
 
   /**
    * Handle incoming offer (for the answerer/joiner)
    * @param {object} offer - SDP offer from remote peer
+   * @returns {Promise<object>} - The answer SDP
    */
   async handleOffer(offer) {
     this.isHost = false;
@@ -98,13 +69,17 @@ class WebRTCManager {
 
     // Create answer
     const answer = await this.peerConnection.createAnswer();
-    await this.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+    await this.peerConnection.setLocalDescription(answer);
 
-    // Send answer through signaling channel
-    this.signalingChannel.send({
-      type: 'answer',
-      answer: answer
-    });
+    return answer;
+  }
+
+  /**
+   * Handle answer from remote peer
+   * @param {object} answer - SDP answer
+   */
+  async handleAnswer(answer) {
+    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
   }
 
   /**
@@ -145,6 +120,18 @@ class WebRTCManager {
    */
   onConnectionStateChange(callback) {
     this.onConnectionStateChangeCallback = callback;
+  }
+
+  /**
+   * Set callback for ICE candidates
+   * @param {function} callback - Function to call when ICE candidate is generated
+   */
+  onIceCandidate(callback) {
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        callback(event.candidate);
+      }
+    };
   }
 
   /**
@@ -229,26 +216,9 @@ class WebRTCManager {
       }
     };
   }
-
-  /**
-   * Handle incoming signaling messages
-   * @param {object} message - Signaling message
-   */
-  _handleSignalingMessage(message) {
-    switch (message.type) {
-      case 'offer':
-        this.handleOffer(message.offer);
-        break;
-      case 'answer':
-        this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
-        break;
-      case 'ice-candidate':
-        this.handleIceCandidate(message.candidate);
-        break;
-      default:
-        console.warn('Unknown signaling message type:', message.type);
-    }
-  }
 }
 
-module.exports = WebRTCManager;
+// Export for use in app.js
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = WebRTCClient;
+}
