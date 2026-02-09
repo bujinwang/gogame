@@ -1,8 +1,9 @@
 /**
- * Audio Service - Generates and plays sound effects using Web Audio API
- * No external audio files needed - sounds are synthesized programmatically
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 class AudioService {
     constructor() {
         this.audioContext = null;

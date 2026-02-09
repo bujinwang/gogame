@@ -1,5 +1,11 @@
 /**
- * Shared constants for Simultaneous Go
+ * 同步围棋 (Simultaneous Go) - Shared Constants
+ * 
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin)
+ * Version: 三宝001版 (v1.0.0-sanbao001)
+ * 
+ * All rights reserved.
  */
 
 // Stone types on the board

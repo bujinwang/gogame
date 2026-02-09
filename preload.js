@@ -1,5 +1,12 @@
 /**
- * Preload script - Context bridge between main and renderer processes
+ * 同步围棋 (Simultaneous Go) - Preload Script
+ * Context bridge between main and renderer processes
+ * 
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin)
+ * Version: 三宝001版 (v1.0.0-sanbao001)
+ * 
+ * All rights reserved.
  */
 
 const { contextBridge, ipcRenderer } = require('electron');

@@ -1,8 +1,9 @@
 /**
- * LAN Discovery Service - UDP broadcast for auto-discovering P2P game rooms
- * Host broadcasts its presence, joiners listen for available rooms
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const dgram = require('dgram');
 const os = require('os');
 

@@ -1,4 +1,28 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+out/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Electron Builder cache
+electron-builder-cache/

@@ -1,8 +1,9 @@
 /**
- * Timer - Server-authoritative time control system
- * Supports base time + byo-yomi (3 periods of 30 seconds)
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { BYOYOMI } = require('../../shared/constants');
 
 class PlayerTimer {

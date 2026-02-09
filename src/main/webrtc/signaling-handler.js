@@ -1,7 +1,9 @@
 /**
- * Signaling Handler - Manages WebSocket signaling for WebRTC connection establishment
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { WebSocket } = require('ws');
 const { MSG, createMessage, parseMessage } = require('../../shared/protocol');
 

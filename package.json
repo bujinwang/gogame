@@ -1,7 +1,7 @@
 {
-  "name": "simultaneous-go",
-  "version": "1.0.0",
-  "description": "Simultaneous Go (围棋) - A Go variant with simultaneous moves",
+  "name": "syncgo",
+  "version": "1.0.0-sanbao001",
+  "description": "同弈 (SyncGo) - 三宝001版 | 同步围棋商业化版本 - A revolutionary Go variant with simultaneous moves",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -14,10 +14,35 @@
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --mac --win --linux",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rm -rf dist",
+    "release": "electron-builder --publish always"
   },
-  "author": "",
-  "license": "MIT",
+  "author": {
+    "name": "步紧 (Bujin)",
+    "email": "bujin@sanyachess.studio"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/bujin/simultaneous-go",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bujin/simultaneous-go.git"
+  },
+  "keywords": [
+    "go",
+    "weiqi",
+    "围棋",
+    "同步围棋",
+    "simultaneous-go",
+    "board-game",
+    "electron",
+    "p2p",
+    "webrtc"
+  ],
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
@@ -28,8 +53,9 @@
     "ws": "^8.16.0"
   },
   "build": {
-    "appId": "com.gogame.simultaneous-go",
-    "productName": "Simultaneous Go",
+    "appId": "com.sanyachess.syncgo",
+    "productName": "同弈",
+    "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
     "directories": {
       "output": "dist"
     },

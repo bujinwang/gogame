@@ -1,8 +1,9 @@
 /**
- * GameEngine - Core game orchestrator for Simultaneous Go
- * Manages game state, turn flow, and coordinates all game components
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { STONE, GAME_MODE, GAME_END_REASON } = require('../../shared/constants');
 const Board = require('./board');
 const Rules = require('./rules');

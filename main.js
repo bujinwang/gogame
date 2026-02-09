@@ -1,11 +1,18 @@
 /**
- * Electron Main Process Entry Point
- * Simultaneous Go (同步围棋)
- */
+ * 同弈 (SyncGo) - Electron Main Process Entry Point
+ * 
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin)
+ * Version: 三宝001版 (v1.0.0-sanbao001)
+ * 
+ * All rights reserved. Unauthorized copying, modification, or distribution
+ * of this software is strictly prohibited.
+*/
 
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, dialog } = require('electron');
 const path = require('path');
 const { setupIpcHandlers, cleanupIpc } = require('./src/main/ipc-handlers');
+const APP_INFO = require('./src/shared/app-info');
 
 let mainWindow = null;
 
@@ -15,7 +22,7 @@ function createWindow() {
     height: 850,
     minWidth: 900,
     minHeight: 700,
-    title: '同步围棋 - Simultaneous Go',
+    title: `${APP_INFO.name} - ${APP_INFO.nameEn} | ${APP_INFO.versionDisplay}`,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -94,7 +101,19 @@ function createWindow() {
         {
           label: '关于',
           click: () => {
-            mainWindow.webContents.send('menu-about');
+            dialog.showMessageBox(mainWindow, {
+              type: 'info',
+              title: `关于 ${APP_INFO.name}`,
+              message: `${APP_INFO.name} (${APP_INFO.nameEn})`,
+              detail: `版本: ${APP_INFO.versionFull}\n` +
+                      `构建日期: ${APP_INFO.buildDate}\n\n` +
+                      `${APP_INFO.copyright}\n` +
+                      `作者: ${APP_INFO.author} (${APP_INFO.authorEn})\n` +
+                      `工作室: ${APP_INFO.studio}\n\n` +
+                      `${APP_INFO.description}\n\n` +
+                      `许可: ${APP_INFO.license}`,
+              buttons: ['确定']
+            });
           }
         }
       ]

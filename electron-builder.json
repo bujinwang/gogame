@@ -1,8 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.gogame.simultaneous",
+  "appId": "com.sanbao.chess.simultaneous-go",
   "productName": "同步围棋",
-  "copyright": "Copyright © 2024",
+  "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
+  "buildVersion": "1.0.0-sanbao001",
   "directories": {
     "output": "dist",
     "buildResources": "build"
@@ -68,7 +69,8 @@
     "installerHeaderIcon": "build/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "同步围棋"
+    "shortcutName": "同步围棋 三宝001版",
+    "license": "LICENSE"
   },
   "dmg": {
     "contents": [

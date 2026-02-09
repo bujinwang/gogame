@@ -1,8 +1,9 @@
 /**
- * WebRTC Client - Handles peer-to-peer connections in the renderer process
- * Uses browser WebRTC APIs
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 class WebRTCClient {
   constructor() {
     this.peerConnection = null;

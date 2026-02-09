@@ -1,8 +1,9 @@
 /**
- * Scoring - Chinese area scoring for Simultaneous Go
- * Red stones count for neither side
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { STONE } = require('../../shared/constants');
 
 class Scoring {

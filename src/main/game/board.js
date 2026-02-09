@@ -1,8 +1,9 @@
 /**
- * Board - Core board data structure and operations
- * Represents a 19x19 Go board with support for Red stones
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { STONE, BOARD_SIZE } = require('../../shared/constants');
 
 class Board {

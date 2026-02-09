@@ -1,8 +1,9 @@
 /**
- * App - Main renderer process application
- * Handles UI, board rendering, and game client communication
+ * 同弈 (SyncGo)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 // Fix for potential "dragEvent is not defined" error
 // This can occur due to browser extensions or other external scripts
 if (typeof dragEvent === 'undefined' && typeof window !== 'undefined') {

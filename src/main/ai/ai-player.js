@@ -1,8 +1,9 @@
 /**
- * AI Player - Simple AI for Simultaneous Go
- * Uses Monte Carlo Tree Search with basic heuristics
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const { STONE, AI_DIFFICULTY } = require('../../shared/constants');
 const Board = require('../game/board');
 const Rules = require('../game/rules');

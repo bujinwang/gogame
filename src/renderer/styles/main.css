@@ -1,4 +1,8 @@
-/* Main Styles - Global theme and layout */
+/**
+ * 同步围棋 (Simultaneous Go) - Main Styles
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ */
 
 :root {
   --bg-primary: #1a1a2e;

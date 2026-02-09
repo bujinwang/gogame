@@ -1,8 +1,9 @@
 /**
- * WebSocket Game Server
- * Runs on the host machine, manages game sessions
+ * 同步围棋 (Simultaneous Go)
+ * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
+ * Author: 步紧 (Bujin) | Version: 三宝001版
+ * All rights reserved.
  */
-
 const WebSocket = require('ws');
 const { DEFAULT_PORT, STONE, GAME_END_REASON } = require('../shared/constants');
 const { MSG, createMessage, parseMessage } = require('../shared/protocol');
