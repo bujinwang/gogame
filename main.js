@@ -17,12 +17,14 @@ const APP_INFO = require('./src/shared/app-info');
 let mainWindow = null;
 
 function createWindow() {
+  const iconPath = path.join(__dirname, 'build', 'icon.icns');
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 850,
     minWidth: 900,
     minHeight: 700,
     title: `${APP_INFO.name} - ${APP_INFO.nameEn} | ${APP_INFO.versionDisplay}`,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

@@ -18,9 +18,14 @@ let aiPlayer = null;
 let aiEngine = null;
 let mainWindow = null;
 let lanDiscovery = new LANDiscovery();
+let handlersRegistered = false;
 
 function setupIpcHandlers(mainWindowParam) {
   mainWindow = mainWindowParam;
+
+  // Prevent registering handlers more than once
+  if (handlersRegistered) return;
+  handlersRegistered = true;
 
   /**
    * Host a game (WebSocket LAN) - start server and wait for opponent
