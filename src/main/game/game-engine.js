@@ -121,7 +121,21 @@ class GameEngine {
     this.pendingBlackMove = null;
     this.pendingWhiteMove = null;
     
-    // Start timers for both players
+    // Auto-pass for timed-out players
+    if (this.timerManager.black.timedOut) {
+      this.pendingBlackMove = { pass: true };
+    }
+    if (this.timerManager.white.timedOut) {
+      this.pendingWhiteMove = { pass: true };
+    }
+    
+    // If both players are timed out (both auto-passed), resolve immediately
+    if (this.pendingBlackMove !== null && this.pendingWhiteMove !== null) {
+      this._resolveTurn();
+      return;
+    }
+    
+    // Start timers for non-timed-out players
     this.timerManager.startTurn();
     this.timerManager.startBroadcast();
   }

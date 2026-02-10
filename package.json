@@ -55,6 +55,7 @@
   "build": {
     "appId": "com.sanyachess.syncgo",
     "productName": "同弈",
+    "icon": "build/icon.icns",
     "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
     "directories": {
       "output": "dist"

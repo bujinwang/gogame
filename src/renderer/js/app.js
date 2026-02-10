@@ -1404,6 +1404,7 @@ function setupBackgroundMusicListeners() {
 // ============================================================
 function setupEventListeners() {
   // Home screen buttons
+  document.getElementById('btn-host').addEventListener('click', () => showScreen('host'));
   document.getElementById('btn-join').addEventListener('click', () => showScreen('join'));
   document.getElementById('btn-ai').addEventListener('click', () => showScreen('ai'));
   document.getElementById('btn-webrtc').addEventListener('click', () => showScreen('webrtc'));
