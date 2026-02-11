@@ -1,7 +1,7 @@
 {
   "name": "syncgo",
-  "version": "1.0.0-sanbao001",
-  "description": "同弈 (SyncGo) - 三宝001版 | 同步围棋商业化版本 - A revolutionary Go variant with simultaneous moves",
+  "version": "1.0.0-sanbao002",
+  "description": "同弈 (SyncGo) - 三宝001版 | 同步围棋面试版本 - A revolutionary Go variant with simultaneous moves",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
