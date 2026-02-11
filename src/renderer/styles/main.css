@@ -264,16 +264,103 @@ body {
   }
 }
 
-/* 🌟 归魂标题效果 */
+/* 🌟 归魂标题效果 - 艺术体设计 */
 .title-memorial {
-  font-family: 'STKaiti', 'KaiTi', serif;
-  background: var(--gradient-gold);
+  font-family: 'STKaiti', 'KaiTi', 'FangSong', 'YouYuan', 'Hanyi', serif;
+  background: 
+    linear-gradient(180deg,
+      rgba(255, 248, 220, 0.9) 0%,
+      rgba(255, 215, 0, 0.9) 30%,
+      rgba(255, 215, 0, 0.6) 50%,
+      rgba(255, 236, 139, 0.9) 70%,
+      rgba(255, 248, 220, 0.8) 100%
+    );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: soul-gold-pulse 3s ease-in-out infinite;
   background-size: 200% 200%;
   position: relative;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  font-size: 3.5rem;
+  text-align: center;
+  
+  /* 艺术体多层阴影效果 */
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.5),
+    0 0 40px rgba(255, 215, 0, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 🌟 归魂标题装饰线 */
+.title-memorial::before {
+  content: '◆';
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #ffd700, #ffec8b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.2rem;
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.title-memorial::after {
+  content: '◆';
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #ffd700, #ffec8b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.2rem;
+  animation: star-twinkle 2s ease-in-out infinite 1s;
+}
+
+/* 🌟 副标题艺术体样式 */
+.game-subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0 25px;
+  font-size: 1.4rem;
+}
+
+.subtitle-cn {
+  font-family: 'STKaiti', 'KaiTi', 'FangSong', 'YouYuan', serif;
+  background: linear-gradient(180deg, #fff 0%, #ffd700 50%, #ff8c00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+  font-size: 1.6rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  animation: soul-glow 3s ease-in-out infinite;
+}
+
+.subtitle-divider {
+  background: linear-gradient(135deg, #ffd700, #ffec8b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1rem;
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.subtitle-en {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  color: rgba(255, 215, 0, 0.8);
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
 @keyframes soul-gold-pulse {

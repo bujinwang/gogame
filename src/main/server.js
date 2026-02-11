@@ -31,7 +31,14 @@ class GameServer {
   }
 
   _log(msg) {
-    if (this._onLog) this._onLog(msg);
+    // Only call _onLog if it's set and is a function (defensive check for destroyed objects)
+    if (typeof this._onLog === 'function') {
+      try {
+        this._onLog(msg);
+      } catch (e) {
+        // Ignore errors if the callback references a destroyed object
+      }
+    }
     console.log(`[Server] ${msg}`);
   }
 

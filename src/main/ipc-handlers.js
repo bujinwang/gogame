@@ -20,6 +20,20 @@ let mainWindow = null;
 let lanDiscovery = new LANDiscovery();
 let handlersRegistered = false;
 
+/**
+ * Safely send a message to the renderer process.
+ * No-op if mainWindow has been destroyed or set to null.
+ */
+function safeSend(channel, ...args) {
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(channel, ...args);
+    }
+  } catch (e) {
+    // Window was destroyed between the check and the send – ignore
+  }
+}
+
 function setupIpcHandlers(mainWindowParam) {
   mainWindow = mainWindowParam;
 
@@ -38,7 +52,7 @@ function setupIpcHandlers(mainWindowParam) {
       // Create a local game server
       gameServer = new GameServer({ port: settings.port || 38765 });
       gameServer.onLog((msg) => {
-        mainWindow.webContents.send('server-log', msg);
+        safeSend('server-log', msg);
       });
 
       const serverInfo = await gameServer.start(settings);
@@ -46,7 +60,7 @@ function setupIpcHandlers(mainWindowParam) {
       // Connect as local player (host is always black)
       localClient = gameServer.connectLocal(settings.playerName || 'Host');
       localClient.onMessage((data) => {
-        mainWindow.webContents.send('game-message', data);
+        safeSend('game-message', data);
       });
 
       return { success: true, ...serverInfo };
@@ -77,11 +91,11 @@ function setupIpcHandlers(mainWindowParam) {
 
           // Set up message forwarding
           ws.on('message', (data) => {
-            mainWindow.webContents.send('game-message', data.toString());
+            safeSend('game-message', data.toString());
           });
 
           ws.on('close', () => {
-            mainWindow.webContents.send('connection-lost');
+            safeSend('connection-lost');
           });
 
           ws.on('error', (err) => {
@@ -133,7 +147,7 @@ function setupIpcHandlers(mainWindowParam) {
       // Create a local game server (acts as signaling server)
       gameServer = new GameServer({ port: settings.port || 38765 });
       gameServer.onLog((msg) => {
-        mainWindow.webContents.send('server-log', msg);
+        safeSend('server-log', msg);
       });
 
       const serverInfo = await gameServer.start(settings);
@@ -143,12 +157,12 @@ function setupIpcHandlers(mainWindowParam) {
 
       // Forward game messages from local client to renderer
       localClient.onMessage((data) => {
-        mainWindow.webContents.send('game-message', data);
+        safeSend('game-message', data);
       });
 
       // Set up WebRTC signaling relay
       gameServer.onWebRTCSignal = (signal) => {
-        mainWindow.webContents.send('webrtc-signal', signal);
+        safeSend('webrtc-signal', signal);
       };
 
       // Start LAN broadcast so joiners can discover this room
@@ -196,22 +210,22 @@ function setupIpcHandlers(mainWindowParam) {
               
               if (['offer', 'answer', 'ice-candidate'].includes(jsonMsg.type)) {
                 // Forward WebRTC signaling to renderer
-                mainWindow.webContents.send('webrtc-signal', jsonMsg);
+                safeSend('webrtc-signal', jsonMsg);
               } else {
                 // Game message - forward to renderer
-                mainWindow.webContents.send('game-message', dataStr);
+                safeSend('game-message', dataStr);
               }
             } catch (e) {
               // Not JSON, try protocol parsing
               const msg = parseMessage(dataStr);
               if (msg.type !== MSG.ERROR) {
-                mainWindow.webContents.send('game-message', dataStr);
+                safeSend('game-message', dataStr);
               }
             }
           });
 
           ws.on('close', () => {
-            mainWindow.webContents.send('connection-lost');
+            safeSend('connection-lost');
           });
 
           ws.on('error', (err) => {
@@ -279,7 +293,7 @@ function setupIpcHandlers(mainWindowParam) {
       // Create a local game server
       gameServer = new GameServer({ port: settings.port || 38766 });
       gameServer.onLog((msg) => {
-        mainWindow.webContents.send('server-log', msg);
+        safeSend('server-log', msg);
       });
 
       await gameServer.start(settings);
@@ -288,7 +302,7 @@ function setupIpcHandlers(mainWindowParam) {
       const humanColor = settings.playerColor || 'black';
       localClient = gameServer.connectLocal(settings.playerName || 'Player');
       localClient.onMessage((data) => {
-        mainWindow.webContents.send('game-message', data);
+        safeSend('game-message', data);
       });
 
       // Create AI player
@@ -397,11 +411,11 @@ function setupIpcHandlers(mainWindowParam) {
     lanDiscovery.startScan(
       (room) => {
         // Room discovered
-        mainWindow.webContents.send('room-found', room);
+        safeSend('room-found', room);
       },
       (roomKey) => {
         // Room lost
-        mainWindow.webContents.send('room-lost', roomKey);
+        safeSend('room-lost', roomKey);
       }
     );
     return { success: true };
@@ -433,6 +447,8 @@ function cleanup() {
     localClient = null;
   }
   if (gameServer) {
+    // Clear the log callback before stopping to prevent calling mainWindow after it's destroyed
+    gameServer.onLog(null);
     gameServer.stop();
     gameServer = null;
   }
@@ -444,6 +460,7 @@ function cleanup() {
 
 function cleanupIpc() {
   cleanup();
+  mainWindow = null;
   lanDiscovery.destroy();
 }
 
