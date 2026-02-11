@@ -30,7 +30,7 @@
   "homepage": "https://github.com/bujin/simultaneous-go",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bujin/simultaneous-go.git"
+    "url": "https://github.com/bujinwang/gogame.git"
   },
   "keywords": [
     "go",

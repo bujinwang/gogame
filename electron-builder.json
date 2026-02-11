@@ -91,5 +91,9 @@
       "height": 380
     }
   },
-  "publish": null
+  "publish": {
+    "provider": "github",
+    "owner": "bujinwang",
+    "repo": "gogame"
+  }
 }
