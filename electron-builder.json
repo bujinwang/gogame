@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.sanbao.chess.simultaneous-go",
-  "productName": "同步围棋",
+  "appId": "com.sanbao.chess.wuxiango",
+  "productName": "无先围棋",
   "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
   "buildVersion": "1.0.0-sanbao002",
   "directories": {
@@ -46,7 +46,7 @@
     ],
     "icon": "build/icon.ico",
     "sign": false,
-    "executableName": "SyncGo"
+    "executableName": "WuxianGo"
   },
   "linux": {
     "target": [
@@ -71,7 +71,7 @@
     "installerHeaderIcon": "build/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "同步围棋 三宝002版",
+    "shortcutName": "无先围棋 三宝002版",
     "license": "LICENSE"
   },
   "dmg": {

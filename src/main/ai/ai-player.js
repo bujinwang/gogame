@@ -1,5 +1,5 @@
 /**
- * 同步围棋 (Simultaneous Go)
+ * 无先围棋 (Wuxian Go)
  * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
  * Author: 步紧 (Bujin) | Version: 三宝001版
  * All rights reserved.
@@ -28,15 +28,15 @@ class AIPlayer {
   }
 
   /**
-   * Generate a move for the AI
+   * Generate a move for the AI - only plays in center area
    * @param {Board} board - Current board state
    * @returns {{x: number, y: number, pass: boolean}}
    */
   generateMove(board) {
     const playouts = this.playoutCounts[this.difficulty] || 500;
     
-    // Get all legal moves
-    const legalMoves = this._getLegalMoves(board);
+    // Get all legal moves in center area only
+    const legalMoves = this._getLegalMovesInCenter(board);
     
     if (legalMoves.length === 0) {
       return { pass: true };
@@ -73,7 +73,37 @@ class AIPlayer {
   }
 
   /**
-   * Get all legal moves on the board
+   * Get all legal moves in the center area of the board
+   * Center area is defined as the middle 9x9 region on a 19x19 board
+   * @param {Board} board
+   * @returns {Array<{x: number, y: number, pass: boolean}>}
+   */
+  _getLegalMovesInCenter(board) {
+    const moves = [];
+    const size = board.size;
+    
+    // Define center area: middle 9x9 region (for 19x19 board)
+    // For smaller boards, adjust proportionally
+    const centerSize = Math.min(9, Math.floor(size / 2));
+    const halfCenter = Math.floor(centerSize / 2);
+    const centerStart = Math.floor(size / 2) - halfCenter;
+    const centerEnd = Math.floor(size / 2) + halfCenter;
+    
+    for (let y = centerStart; y <= centerEnd; y++) {
+      for (let x = centerStart; x <= centerEnd; x++) {
+        if (x >= 0 && x < size && y >= 0 && y < size) {
+          const validation = Rules.preValidateMove(board, x, y, this.stoneColor);
+          if (validation.valid) {
+            moves.push({ x, y, pass: false });
+          }
+        }
+      }
+    }
+    return moves;
+  }
+
+  /**
+   * Get all legal moves on the board (for playout simulation)
    * @param {Board} board
    * @returns {Array<{x: number, y: number, pass: boolean}>}
    */

@@ -17,9 +17,22 @@ class LANDiscovery {
     this.listenSocket = null;
     this.broadcastTimer = null;
     this.roomCleanupTimer = null;
-    this.discoveredRooms = new Map(); // key: `${host}:${port}` -> room info
+    this.discoveredRooms = new Map(); // key: `${hostName}:${port}` -> room info
     this.onRoomFound = null;
     this.onRoomLost = null;
+  }
+
+  /**
+   * Normalize IPv6-mapped IPv4 address to plain IPv4
+   * @param {string} ip - The IP address to normalize
+   * @returns {string} - Normalized IPv4 address
+   */
+  _normalizeIP(ip) {
+    // Handle IPv6-mapped IPv4 addresses (e.g., ::ffff:192.168.1.100)
+    if (ip.startsWith('::ffff:')) {
+      return ip.substring(7);
+    }
+    return ip;
   }
 
   /**
@@ -40,12 +53,14 @@ class LANDiscovery {
   }
 
   /**
-   * Get broadcast addresses for all network interfaces
+   * Get unique broadcast addresses for all network interfaces
+   * Uses Set to automatically deduplicate addresses
    * @returns {string[]}
    */
   _getBroadcastAddresses() {
     const interfaces = os.networkInterfaces();
-    const broadcasts = [];
+    const broadcasts = new Set();
+    
     for (const name of Object.keys(interfaces)) {
       for (const iface of interfaces[name]) {
         if (iface.family === 'IPv4' && !iface.internal && iface.netmask) {
@@ -53,15 +68,15 @@ class LANDiscovery {
           const ipParts = iface.address.split('.').map(Number);
           const maskParts = iface.netmask.split('.').map(Number);
           const broadcastParts = ipParts.map((ip, i) => (ip | (~maskParts[i] & 255)));
-          broadcasts.push(broadcastParts.join('.'));
+          broadcasts.add(broadcastParts.join('.'));
         }
       }
     }
+    
     // Always include the generic broadcast address
-    if (!broadcasts.includes('255.255.255.255')) {
-      broadcasts.push('255.255.255.255');
-    }
-    return broadcasts;
+    broadcasts.add('255.255.255.255');
+    
+    return Array.from(broadcasts);
   }
 
   /**
@@ -108,7 +123,7 @@ class LANDiscovery {
 
         doBroadcast();
         this.broadcastTimer = setInterval(doBroadcast, BROADCAST_INTERVAL);
-        console.log('[Discovery] Broadcasting room on port', DISCOVERY_PORT);
+        console.log('[Discovery] Broadcasting room on port', DISCOVERY_PORT, 'to', broadcastAddresses.length, 'addresses');
       });
     } catch (err) {
       console.error('[Discovery] Failed to start broadcast:', err.message);
@@ -153,16 +168,26 @@ class LANDiscovery {
           const data = JSON.parse(msg.toString());
           if (data.type !== 'gogame-room' || data.version !== 1) return;
 
-          // Use the sender's actual IP (rinfo.address) as the primary host
-          const hostIP = rinfo.address;
-          const roomKey = `${hostIP}:${data.port}`;
+          // Validate required fields
+          if (!data.hostName || !data.port) return;
 
+          // Normalize the sender's IP address (handle IPv6-mapped IPv4)
+          const hostIP = this._normalizeIP(rinfo.address);
+          const port = data.port;
+          
+          // Use hostName + port as the unique room identifier
+          // This handles multi-homed hosts (multiple network interfaces)
+          const roomKey = `${data.hostName}:${port}`;
+
+          // Get existing room if any
+          const existingRoom = this.discoveredRooms.get(roomKey);
+          
           const room = {
             key: roomKey,
             hostName: data.hostName,
-            host: hostIP,
+            host: hostIP,  // Update to latest known IP
             hostIPs: data.hostIPs || [hostIP],
-            port: data.port,
+            port: port,
             baseTime: data.baseTime,
             lastSeen: Date.now()
           };
@@ -171,7 +196,12 @@ class LANDiscovery {
           this.discoveredRooms.set(roomKey, room);
 
           if (isNew && this.onRoomFound) {
+            console.log('[Discovery] Room found:', room.hostName, 'at', hostIP + ':' + port);
             this.onRoomFound(room);
+          } else if (!isNew && existingRoom && existingRoom.host !== hostIP) {
+            // Room already exists but from different IP - update the host IP
+            // Don't trigger onRoomFound again, just update silently
+            console.log('[Discovery] Room', room.hostName, 'updated IP:', hostIP);
           }
         } catch (e) {
           // Ignore malformed packets
@@ -187,6 +217,7 @@ class LANDiscovery {
         const now = Date.now();
         for (const [key, room] of this.discoveredRooms) {
           if (now - room.lastSeen > ROOM_TIMEOUT) {
+            console.log('[Discovery] Room lost:', key);
             this.discoveredRooms.delete(key);
             if (this.onRoomLost) {
               this.onRoomLost(key);

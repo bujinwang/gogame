@@ -575,6 +575,7 @@ class BoardRenderer {
         for (let x = 0; x < this.size; x++) {
           const stone = state.board[y][x];
           if (stone !== STONE.EMPTY) {
+            // Draw stone with its actual color
             this._drawStone(x, y, stone);
           }
         }
@@ -991,22 +992,38 @@ async function submitMove(x, y) {
   state.moveSubmitted = true;
   document.getElementById('btn-pass').disabled = true;
   
-  // If using WebRTC, send through data channel
-  if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
-    state.webRTCClient.sendMessage({
-      type: 'submit_move',
-      x: x,
-      y: y,
-      pass: false
-    });
-  } else {
-    const result = await window.gameAPI.submitMove({ x, y, pass: false });
-    if (!result.success) {
-      state.moveSubmitted = false;
-      document.getElementById('btn-pass').disabled = false;
-      console.error('Move rejected:', result.error);
-      audioService.playError();
-      updateStatus(`落子失败: ${result.error}`);
+  // Immediately display the stone on local board for better UX
+  const myStone = state.myColor === 'black' ? STONE.BLACK : STONE.WHITE;
+  if (state.board) {
+    state.board[y][x] = myStone;
+    // Track last move for immediate display
+    if (state.myColor === 'black') {
+      state.lastBlackMove = { x, y, pass: false };
+    } else {
+      state.lastWhiteMove = { x, y, pass: false };
+    }
+    if (boardRenderer) boardRenderer.draw();
+  }
+  
+  // Always send through IPC to server for proper game state management
+  // This works for both WebSocket and WebRTC modes
+  const result = await window.gameAPI.submitMove({ x, y, pass: false });
+  if (!result.success) {
+    state.moveSubmitted = false;
+    document.getElementById('btn-pass').disabled = false;
+    console.error('Move rejected:', result.error);
+    audioService.playError();
+    updateStatus(`落子失败: ${result.error}`);
+    // Revert the local board change if move failed
+    if (state.board) {
+      state.board[y][x] = STONE.EMPTY;
+      // Clear the last move marker
+      if (state.myColor === 'black') {
+        state.lastBlackMove = null;
+      } else {
+        state.lastWhiteMove = null;
+      }
+      if (boardRenderer) boardRenderer.draw();
     }
   }
 }
@@ -1017,26 +1034,17 @@ async function submitPass() {
   state.moveSubmitted = true;
   document.getElementById('btn-pass').disabled = true;
   
-  // If using WebRTC, send through data channel
-  if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
-    state.webRTCClient.sendMessage({
-      type: 'submit_move',
-      pass: true
-    });
+  // Always send through IPC to server for proper game state management
+  // This works for both WebSocket and WebRTC modes
+  const result = await window.gameAPI.submitMove({ pass: true });
+  if (!result.success) {
+    state.moveSubmitted = false;
+    document.getElementById('btn-pass').disabled = false;
+    updateStatus(`虚手失败: ${result.error}`);
+  } else {
     updateStatus('已虚手，等待对手...');
     const canvas = document.getElementById('game-board');
     canvas.classList.add('waiting');
-  } else {
-    const result = await window.gameAPI.submitMove({ pass: true });
-    if (!result.success) {
-      state.moveSubmitted = false;
-      document.getElementById('btn-pass').disabled = false;
-      updateStatus(`虚手失败: ${result.error}`);
-    } else {
-      updateStatus('已虚手，等待对手...');
-      const canvas = document.getElementById('game-board');
-      canvas.classList.add('waiting');
-    }
   }
 }
 
@@ -1044,12 +1052,9 @@ async function resignGame() {
   if (!state.gameActive) return;
   
   if (confirm('确定要认输吗？')) {
-    // If using WebRTC, send through data channel
-    if (state.useWebRTC && state.webRTCClient && state.webRTCClient.isConnected()) {
-      state.webRTCClient.sendMessage({ type: 'resign' });
-    } else {
-      await window.gameAPI.resign();
-    }
+    // Always send through IPC to server for proper game state management
+    // This works for both WebSocket and WebRTC modes
+    await window.gameAPI.resign();
   }
 }
 

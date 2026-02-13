@@ -1,5 +1,5 @@
 /**
- * 同弈 (SyncGo) - Electron Main Process Entry Point
+ * 无先围棋 (WuxianGo) - Electron Main Process Entry Point
  * 
  * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
  * Author: 步紧 (Bujin)
@@ -7,7 +7,7 @@
  * 
  * All rights reserved. Unauthorized copying, modification, or distribution
  * of this software is strictly prohibited.
-*/
+ */
 
 const { app, BrowserWindow, Menu, dialog } = require('electron');
 const path = require('path');

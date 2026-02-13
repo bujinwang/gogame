@@ -1,7 +1,7 @@
 {
-  "name": "syncgo",
+  "name": "wuxiango",
   "version": "1.0.0-sanbao002",
-  "description": "同弈 (SyncGo) - 三宝001版 | 同步围棋面试版本 - A revolutionary Go variant with simultaneous moves",
+  "description": "无先围棋 (WuxianGo) - 三宝001版 | 同步围棋面试版本 - A revolutionary Go variant with simultaneous moves",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -36,7 +36,7 @@
     "go",
     "weiqi",
     "围棋",
-    "同步围棋",
+    "无先围棋",
     "simultaneous-go",
     "board-game",
     "electron",
@@ -53,8 +53,8 @@
     "ws": "^8.16.0"
   },
   "build": {
-    "appId": "com.sanyachess.syncgo",
-    "productName": "同步围棋",
+    "appId": "com.sanyachess.wuxiango",
+    "productName": "无先围棋",
     "icon": "build/icon.icns",
     "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
     "directories": {
@@ -65,7 +65,7 @@
     },
     "win": {
       "target": "nsis",
-      "executableName": "SyncGo"
+      "executableName": "WuxianGo"
     },
     "linux": {
       "target": "AppImage"
