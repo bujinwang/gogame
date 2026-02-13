@@ -1,5 +1,5 @@
 /**
- * 同步围棋 (Simultaneous Go) - 应用信息 / Application Info
+ * 无先围棋 (Wuxian Go) - 应用信息 / Application Info
  * 
  * Copyright (C) 2026 三宝棋道工作室 (Sanbao Chess Studio)
  * Author: 步紧 (Bujin)
@@ -11,8 +11,8 @@
 
 const APP_INFO = {
   // 应用名称
-  name: '同弈',
-  nameEn: 'SyncGo',
+  name: '无先围棋',
+  nameEn: 'WuxianGo',
   
   // 版本信息
   version: '1.0.0-sanbao001',
@@ -45,8 +45,8 @@ const APP_INFO = {
   licenseShort: 'Proprietary',
   
   // 描述
-  description: '同弈是一款创新性的围棋变体游戏，双方在每一步中同时下棋。',
-  descriptionEn: 'SyncGo is an innovative Go variant where both players move simultaneously each turn.',
+  description: '无先围棋是一款创新性的围棋变体游戏，双方在每一步中同时下棋。',
+  descriptionEn: 'WuxianGo is an innovative Go variant where both players move simultaneously each turn.',
   
   // 完整关于信息
   getAboutText() {

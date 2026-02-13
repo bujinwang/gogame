@@ -3,7 +3,7 @@
   "appId": "com.sanbao.chess.simultaneous-go",
   "productName": "同步围棋",
   "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
-  "buildVersion": "1.0.0-sanbao001",
+  "buildVersion": "1.0.0-sanbao002",
   "directories": {
     "output": "dist",
     "buildResources": "build"
@@ -37,15 +37,16 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": ["x64", "ia32"]
       },
       {
         "target": "portable",
-        "arch": ["x64"]
+        "arch": ["x64", "ia32"]
       }
     ],
     "icon": "build/icon.ico",
-    "sign": false
+    "sign": false,
+    "executableName": "SyncGo"
   },
   "linux": {
     "target": [
@@ -70,7 +71,7 @@
     "installerHeaderIcon": "build/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "同步围棋 三宝001版",
+    "shortcutName": "同步围棋 三宝002版",
     "license": "LICENSE"
   },
   "dmg": {

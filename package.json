@@ -54,7 +54,7 @@
   },
   "build": {
     "appId": "com.sanyachess.syncgo",
-    "productName": "同弈",
+    "productName": "同步围棋",
     "icon": "build/icon.icns",
     "copyright": "Copyright © 2026 三宝棋道工作室 (Sanbao Chess Studio). All rights reserved.",
     "directories": {
@@ -64,7 +64,8 @@
       "category": "public.app-category.board-games"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "executableName": "SyncGo"
     },
     "linux": {
       "target": "AppImage"
