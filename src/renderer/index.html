@@ -22,7 +22,7 @@
       <span class="music-icon">🎵</span>
     </button>
     <div class="music-volume-container">
-      <input type="range" id="music-volume" class="volume-slider" min="0" max="100" value="40" title="音量">
+      <input type="range" id="music-volume" class="volume-slider" min="0" max="100" value="20" title="音量">
     </div>
   </div>
   
@@ -326,6 +326,10 @@
 
         <div class="game-status" id="game-status">
           <p id="status-text">等待游戏开始...</p>
+          <div id="ai-thinking" class="ai-thinking-indicator" style="display: none;">
+            <div class="ai-thinking-spinner"></div>
+            <span id="ai-thinking-text">AI思考中...</span>
+          </div>
         </div>
 
         <div class="turn-info" id="turn-info">

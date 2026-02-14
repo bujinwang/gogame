@@ -14,6 +14,11 @@
     "src/**/*",
     "package.json"
   ],
+  "asarUnpack": [
+    "src/main/ai/**/*",
+    "src/main/game/**/*",
+    "src/shared/**/*"
+  ],
   "mac": {
     "category": "public.app-category.board-games",
     "target": [

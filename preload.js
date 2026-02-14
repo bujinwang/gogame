@@ -63,6 +63,9 @@ contextBridge.exposeInMainWorld('gameAPI', {
   onRoomLost: (callback) => {
     ipcRenderer.on('room-lost', (event, roomKey) => callback(roomKey));
   },
+  onAIThinkingStart: (callback) => {
+    ipcRenderer.on('ai-thinking-start', () => callback());
+  },
 
   // Remove listeners
   removeAllListeners: () => {

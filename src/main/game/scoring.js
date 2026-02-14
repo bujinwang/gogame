@@ -4,7 +4,7 @@
  * Author: 步紧 (Bujin) | Version: 三宝001版
  * All rights reserved.
  */
-const { STONE } = require('../../shared/constants');
+const { STONE, KOMI } = require('../../shared/constants');
 
 class Scoring {
   /**
@@ -86,20 +86,28 @@ class Scoring {
     }
     
     const blackScore = stoneCounts.black + blackTerritory;
-    const whiteScore = stoneCounts.white + whiteTerritory;
+    const whiteScoreRaw = stoneCounts.white + whiteTerritory;
+    const whiteScore = whiteScoreRaw + KOMI; // White gets komi (贴目)
     
     let winner;
+    let scoreDiff;
     if (blackScore > whiteScore) {
       winner = 'black';
+      scoreDiff = blackScore - whiteScore;
     } else if (whiteScore > blackScore) {
       winner = 'white';
+      scoreDiff = whiteScore - blackScore;
     } else {
       winner = 'tie';
+      scoreDiff = 0;
     }
     
     return {
       blackScore,
       whiteScore,
+      whiteScoreRaw,
+      komi: KOMI,
+      scoreDiff,
       blackStones: stoneCounts.black,
       whiteStones: stoneCounts.white,
       blackTerritory,

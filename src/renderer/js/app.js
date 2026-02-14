@@ -22,7 +22,7 @@ const BOARD_SIZE = 19;
 const bgMusicService = {
   audio: null,
   playing: false,
-  volume: 0.4,  // 默认音量 40%
+  volume: 0.2,  // 默认音量 20%
   loaded: false,
 
   async init() {
@@ -375,7 +375,11 @@ const state = {
   moveHistory: [],
   lastByoYomiWarning: 0,  // Track last warning to prevent spam
   useWebRTC: false,      // Whether using WebRTC for P2P
-  webRTCClient: null     // WebRTC client instance
+  webRTCClient: null,    // WebRTC client instance
+  isAI: false,          // Whether playing against AI
+  aiColor: null,        // AI's color ('black' or 'white')
+  aiThinking: false,     // Whether AI is currently thinking
+  aiStartTime: null     // When AI started thinking (for timing display)
 };
 
 // ============================================================
@@ -819,6 +823,11 @@ function handleTurnStart(msg) {
   state.waitingForOpponent = false;
   state.hoverPos = null;
   
+  // Always reset AI thinking state at turn start — the player should focus on their own move
+  if (state.isAI && state.aiThinking) {
+    hideAIThinking();
+  }
+  
   document.getElementById('turn-number').textContent = `第 ${state.turnNumber} 手`;
   document.getElementById('btn-pass').disabled = false;
   
@@ -830,13 +839,54 @@ function handleTurnStart(msg) {
   if (boardRenderer) boardRenderer.draw();
 }
 
+// Show/hide AI thinking indicator
+function showAIThinking(show) {
+  const indicator = document.getElementById('ai-thinking');
+  console.log(`showAIThinking called: ${show}, indicator element:`, indicator);
+  if (indicator) {
+    // Directly set style to ensure it works regardless of CSS specificity
+    if (show) {
+      indicator.style.display = 'flex';
+    } else {
+      indicator.style.display = 'none';
+    }
+    console.log(`AI thinking indicator display: ${indicator.style.display}`);
+  }
+  
+  // Also add/remove thinking class to canvas
+  const canvas = document.getElementById('game-board');
+  if (canvas) {
+    canvas.classList.toggle('ai-thinking', show);
+  }
+}
+
+// Hide AI thinking indicator - called after AI completes move
+function hideAIThinking() {
+  state.aiThinking = false;
+  if (state.aiStartTime) {
+    const thinkTime = Date.now() - state.aiStartTime;
+    console.log(`AI思考时间: ${(thinkTime/1000).toFixed(1)}秒`);
+  }
+  state.aiStartTime = null;
+  showAIThinking(false);
+}
+
 function handleMoveAck(msg) {
   if (msg.waiting) {
     state.waitingForOpponent = true;
-    updateStatus('等待对手落子...');
     
     const canvas = document.getElementById('game-board');
     canvas.classList.add('waiting');
+    
+    if (state.isAI) {
+      // Player has submitted — now show AI thinking indicator
+      state.aiThinking = true;
+      state.aiStartTime = Date.now();
+      showAIThinking(true);
+      updateStatus('AI思考中...');
+    } else {
+      updateStatus('等待对手落子...');
+    }
   }
 }
 
@@ -850,6 +900,11 @@ function handleTurnResult(msg) {
   state.capturedByWhite = msg.capturedByWhite || 0;
   state.lastBlackMove = msg.blackMove;
   state.lastWhiteMove = msg.whiteMove;
+  
+  // Hide AI thinking indicator — the next handleTurnStart will reset status
+  if (state.isAI && state.aiThinking) {
+    hideAIThinking();
+  }
   
   // Update captures display
   document.getElementById('black-captures').textContent = `提子: ${state.capturedByBlack}`;
@@ -901,6 +956,11 @@ function handleTimeUpdate(msg) {
 function handleGameEnd(msg) {
   state.gameActive = false;
   state.moveSubmitted = false;
+  
+  // Hide AI thinking indicator when game ends
+  showAIThinking(false);
+  state.aiThinking = false;
+  state.aiStartTime = null;
   
   document.getElementById('btn-pass').disabled = true;
   document.getElementById('btn-resign').disabled = true;
@@ -1003,7 +1063,13 @@ async function submitMove(x, y) {
       state.lastWhiteMove = { x, y, pass: false };
     }
     if (boardRenderer) boardRenderer.draw();
+    // Play stone placement sound immediately for instant feedback
+    audioService.playStonePlace();
   }
+  
+  // Yield to the browser to guarantee the canvas is painted on screen
+  // before the IPC call (which may block waiting for the main process)
+  await new Promise(resolve => requestAnimationFrame(resolve));
   
   // Always send through IPC to server for proper game state management
   // This works for both WebSocket and WebRTC modes
@@ -1576,6 +1642,10 @@ function setupEventListeners() {
     const difficulty = document.getElementById('ai-difficulty').value;
     const baseTime = parseInt(document.getElementById('ai-time').value);
     
+    // Set AI game state before starting
+    state.isAI = true;
+    state.aiColor = color === 'black' ? 'white' : 'black';
+    
     const result = await window.gameAPI.startAIGame({
       playerName: name,
       playerColor: color,
@@ -1586,6 +1656,9 @@ function setupEventListeners() {
     
     if (!result.success) {
       alert('启动失败: ' + result.error);
+      // Reset AI state on failure
+      state.isAI = false;
+      state.aiColor = null;
     }
   });
   
@@ -1649,6 +1722,13 @@ function setupEventListeners() {
   window.gameAPI.onRoomLost((roomKey) => {
     removeRoomFromList(roomKey);
   });
+  
+  // AI Thinking indicator — display is controlled entirely by handleMoveAck/handleTurnStart.
+  // The main-process 'ai-thinking-start' event is intentionally ignored to avoid
+  // showing the indicator before the player has submitted their own move.
+  window.gameAPI.onAIThinkingStart(() => {
+    // No-op: AI thinking is shown only after the player submits (see handleMoveAck)
+  });
 }
 
 function showJoinStatus(text, type) {
@@ -1681,6 +1761,12 @@ function resetGameState() {
   state.lastWhiteMove = null;
   state.moveHistory = [];
   boardRenderer = null;
+  
+  // Reset AI state
+  state.isAI = false;
+  state.aiColor = null;
+  state.aiThinking = false;
+  state.aiStartTime = null;
   
   // Clean up WebRTC
   if (state.webRTCClient) {
@@ -1735,10 +1821,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupBackgroundMusicListeners();
   showScreen('home');
   
-  // 自动播放背景音乐
-  bgMusicService.init().then(() => {
-    bgMusicService.play();
-  }).catch(err => {
-    console.warn('自动播放背景音乐失败:', err);
+  // 仅初始化背景音乐，不自动播放
+  // 用户可以点击音乐按钮来播放
+  bgMusicService.init().catch(err => {
+    console.warn('背景音乐初始化失败:', err);
   });
 });

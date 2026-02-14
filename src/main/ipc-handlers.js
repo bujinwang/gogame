@@ -5,6 +5,8 @@
  * All rights reserved.
  */
 const { ipcMain } = require('electron');
+const { Worker } = require('worker_threads');
+const path = require('path');
 const GameServer = require('./server');
 const AIPlayer = require('./ai/ai-player');
 const GameEngine = require('./game/game-engine');
@@ -19,6 +21,62 @@ let aiEngine = null;
 let mainWindow = null;
 let lanDiscovery = new LANDiscovery();
 let handlersRegistered = false;
+
+/**
+ * Run AI move generation asynchronously using a Worker Thread
+ * so the main process event loop stays responsive for IPC.
+ * Falls back to setImmediate-based chunked execution if workers fail.
+ */
+function generateMoveAsync(aiPlayerInstance, board) {
+  return new Promise((resolve) => {
+    try {
+      // Resolve worker path, handling Electron's asar packaging
+      let workerPath = path.join(__dirname, 'ai', 'ai-worker.js');
+      // In packaged Electron apps, asarUnpack files live under .asar.unpacked
+      if (workerPath.includes('.asar') && !workerPath.includes('.asar.unpacked')) {
+        workerPath = workerPath.replace('.asar', '.asar.unpacked');
+      }
+      const workerData = {
+        color: aiPlayerInstance.color,
+        difficulty: aiPlayerInstance.difficulty,
+        moveCount: aiPlayerInstance.moveCount,
+        boardGrid: board.grid,
+        boardSize: board.size
+      };
+
+      const worker = new Worker(workerPath, { workerData });
+      
+      worker.on('message', (move) => {
+        // Update the moveCount on the main-thread AI instance to stay in sync
+        aiPlayerInstance.moveCount = workerData.moveCount + 1;
+        resolve(move);
+      });
+      
+      worker.on('error', (err) => {
+        console.error('AI Worker error, falling back to sync:', err.message);
+        // Fallback: run synchronously with setImmediate to at least
+        // let one tick of the event loop pass before blocking
+        setImmediate(() => {
+          const move = aiPlayerInstance.generateMove(board);
+          resolve(move);
+        });
+      });
+      
+      worker.on('exit', (code) => {
+        if (code !== 0) {
+          console.warn(`AI Worker exited with code ${code}`);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to create AI Worker, falling back to sync:', err.message);
+      // Fallback: use setImmediate to at least yield once before blocking
+      setImmediate(() => {
+        const move = aiPlayerInstance.generateMove(board);
+        resolve(move);
+      });
+    }
+  });
+}
 
 /**
  * Safely send a message to the renderer process.
@@ -316,20 +374,33 @@ function setupIpcHandlers(mainWindowParam) {
         
         // When AI receives turn start, generate and submit a move
         if (msg.type === MSG.TURN_START) {
-          // Small delay to simulate thinking
-          const thinkTime = settings.aiDifficulty === 'easy' ? 500 :
-                           settings.aiDifficulty === 'hard' ? 3000 : 1500;
+          // Small delay to simulate thinking and give UI time to show indicator
+          // Minimum delay to ensure the thinking indicator is visible
+          const thinkTime = settings.aiDifficulty === 'easy' ? 800 :
+                           settings.aiDifficulty === 'hard' ? 4000 : 2000;
+          
+          // Send a "AI is thinking" notification to renderer before we start computing
+          // This ensures the UI has time to show the indicator
+          safeSend('ai-thinking-start');
           
           setTimeout(() => {
             if (gameServer && gameServer.engine && !gameServer.engine.gameEnded) {
               const board = gameServer.engine.board;
-              const move = aiPlayer.generateMove(board);
               
-              if (move.pass) {
-                aiClient.send(createMessage(MSG.SUBMIT_MOVE, { pass: true }));
-              } else {
-                aiClient.send(createMessage(MSG.SUBMIT_MOVE, { x: move.x, y: move.y }));
-              }
+              // Run AI move generation asynchronously to avoid
+              // blocking the main process event loop.
+              // This ensures IPC messages (e.g. human's move) can still
+              // be processed while the AI is thinking.
+              generateMoveAsync(aiPlayer, board).then((move) => {
+                // Check game state is still valid after async computation
+                if (gameServer && gameServer.engine && !gameServer.engine.gameEnded) {
+                  if (move.pass) {
+                    aiClient.send(createMessage(MSG.SUBMIT_MOVE, { pass: true }));
+                  } else {
+                    aiClient.send(createMessage(MSG.SUBMIT_MOVE, { x: move.x, y: move.y }));
+                  }
+                }
+              });
             }
           }, thinkTime);
         }

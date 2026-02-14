@@ -256,7 +256,8 @@ class GameEngine {
   }
 
   /**
-   * Handle player timeout
+   * Handle player timeout - when all 3 byo-yomi periods are exhausted,
+   * the game ends immediately and the opponent wins.
    * @param {string} color
    */
   _handlePlayerTimedOut(color) {
@@ -264,19 +265,10 @@ class GameEngine {
       this._onPlayerTimedOut(color);
     }
 
-    // If the timed-out player hasn't submitted a move yet, auto-pass
-    if (color === 'black' && this.pendingBlackMove === null) {
-      this.pendingBlackMove = { pass: true };
-      // Check if both moves are now in
-      if (this.pendingWhiteMove !== null) {
-        this._resolveTurn();
-      }
-    } else if (color === 'white' && this.pendingWhiteMove === null) {
-      this.pendingWhiteMove = { pass: true };
-      if (this.pendingBlackMove !== null) {
-        this._resolveTurn();
-      }
-    }
+    // When a player's all 3 byo-yomi periods are exhausted,
+    // end the game immediately - the other player wins by timeout
+    const winner = color === 'black' ? 'white' : 'black';
+    this._endGame(GAME_END_REASON.TIMEOUT, winner);
   }
 
   /**

@@ -53,6 +53,9 @@ const BYOYOMI = {
   TIME: 30 * 1000 // 30 seconds per period
 };
 
+// Komi (贴目) - compensation for white
+const KOMI = 7.5;
+
 // Default WebSocket port
 const DEFAULT_PORT = 38765;
 
@@ -71,6 +74,7 @@ module.exports = {
   BOARD_SIZE,
   TIME_OPTIONS,
   BYOYOMI,
+  KOMI,
   DEFAULT_PORT,
   GAME_END_REASON
 };

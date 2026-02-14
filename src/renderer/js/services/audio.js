@@ -13,7 +13,7 @@ class AudioService {
         
         // Background music
         this.bgMusic = null;
-        this.bgMusicVolume = 0.4;
+        this.bgMusicVolume = 0.2;
         this.bgMusicPlaying = false;
         this.bgMusicLoop = true;
     }

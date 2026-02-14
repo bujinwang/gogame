@@ -506,3 +506,44 @@ body {
 .bg-decoration .star:nth-child(4) { top: 70%; left: 80%; animation-delay: 1.5s; }
 .bg-decoration .star:nth-child(5) { top: 15%; left: 85%; animation-delay: 2s; }
 .bg-decoration .star:nth-child(6) { top: 45%; left: 50%; animation-delay: 2.5s; }
+
+/* ========================================
+ * 🤖 AI思考中指示器
+ * AI Thinking Indicator
+ * ======================================== */
+.ai-thinking-indicator {
+  display: none !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  margin-top: 10px;
+  background: linear-gradient(135deg, 
+    rgba(74, 25, 66, 0.4) 0%,
+    rgba(26, 26, 46, 0.6) 100%);
+  border: 1px solid rgba(0, 188, 212, 0.4);
+  border-radius: 25px;
+  box-shadow: 0 0 15px rgba(0, 188, 212, 0.3);
+  animation: spirit-pulse 2s ease-in-out infinite;
+}
+
+.ai-thinking-indicator.active {
+  display: flex !important;
+}
+
+.ai-thinking-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0, 188, 212, 0.3);
+  border-top-color: #00bcd4;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+#ai-thinking-text {
+  color: #00bcd4;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+}
